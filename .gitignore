@@ -40,3 +40,9 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# MkDocs output
+/site/
+
+# Exported signing keys must never be committed; see docs/releasing.md
+*.asc

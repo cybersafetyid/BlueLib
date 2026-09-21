@@ -32,16 +32,22 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # v3 of this action installs the `tools` package, which the SDK repository no longer serves, so
+      # the action fails before the build even starts. v4 installs only `platform-tools`.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       # AGP 9.1.1 or newer is required: BlueLib compiles against API 37 (Android 17).
-      - name: Install platform and build tools
+      # API 37 is a minor-versioned platform — its package is `platforms;android-37.0`, as the
+      # platform's own package.xml reports ("Android SDK Platform 37.0", api-level 37.0), and there is
+      # no build-tools 37 yet: 36.1.0 is what a local build resolves to. AGP downloads anything else
+      # it needs, so a missing build-tools version is not fatal.
+      - name: Install the Android 17 platform and build tools
         run: |
           sdkmanager --install \
-            "platforms;android-37" \
-            "build-tools;37.0.0" \
+            "build-tools;36.1.0" \
             "platform-tools"
+          sdkmanager --install "platforms;android-37.0" || sdkmanager --install "platforms;android-37"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4

@@ -27,15 +27,17 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # v3 of this action installs the `tools` package, which the SDK repository no longer serves, so
+      # the action fails before the build even starts. v4 installs only `platform-tools`.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
-      - name: Install platform and build tools
+      - name: Install the Android 17 platform and build tools
         run: |
           sdkmanager --install \
-            "platforms;android-37" \
-            "build-tools;37.0.0" \
+            "build-tools;36.1.0" \
             "platform-tools"
+          sdkmanager --install "platforms;android-37.0" || sdkmanager --install "platforms;android-37"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -100,16 +102,63 @@ jobs:
           zip -r "$GITHUB_WORKSPACE/central-bundle.zip" .
         working-directory: .
 
+      # The token is the base64 of "username:password" from the Portal's Account page ("Generate User
+      # Token"), used as a Bearer value. The upload answers with a deployment id, which is the only way
+      # to ask what happened to the bundle afterwards.
       - name: Upload to the Maven Central Portal
+        id: portal
         env:
           CENTRAL_TOKEN: ${{ secrets.CENTRAL_PORTAL_TOKEN }}
         run: |
-          curl --fail-with-body \
+          set -euo pipefail
+          DEPLOYMENT_ID=$(curl -sS --fail-with-body \
             -X POST \
             -H "Authorization: Bearer $CENTRAL_TOKEN" \
             -F "bundle=@central-bundle.zip" \
             -F "name=${{ github.repository }}-${{ steps.version.outputs.value }}" \
-            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=USER_MANAGED")
+          echo "deployment_id=$DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
+          echo "::notice::Central accepted the bundle as deployment $DEPLOYMENT_ID"
+
+      # USER_MANAGED means the bundle is validated and then waits for a human to publish it on the
+      # Portal. That is deliberate for a first release: a published Maven Central version can never be
+      # replaced, and the poll below is what turns "uploaded" into a definite answer. Change the
+      # publishingType above to AUTOMATIC for hands-off releases once the metadata is known to pass.
+      - name: Wait for the deployment to validate or publish
+        if: steps.portal.outputs.deployment_id != ''
+        env:
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_PORTAL_TOKEN }}
+          DEPLOYMENT_ID: ${{ steps.portal.outputs.deployment_id }}
+        run: |
+          set -euo pipefail
+          DEADLINE=$((SECONDS + 900))
+          while [ "$SECONDS" -lt "$DEADLINE" ]; do
+            BODY=$(curl -sS --fail-with-body \
+              -X POST \
+              -H "Authorization: Bearer $CENTRAL_TOKEN" \
+              "https://central.sonatype.com/api/v1/publisher/status?id=$DEPLOYMENT_ID")
+            STATE=$(printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("deploymentState", ""))')
+            echo "deploymentState=$STATE"
+            case "$STATE" in
+              PUBLISHED)
+                echo "::notice::BlueLib ${{ steps.version.outputs.value }} is published to Maven Central."
+                exit 0
+                ;;
+              # The expected end state with publishingType=USER_MANAGED: valid, and waiting for a
+              # human to press publish on https://central.sonatype.com/publishing/deployments
+              VALIDATED)
+                echo "::warning::The bundle passed validation. Publish v${{ steps.version.outputs.value }} at https://central.sonatype.com/publishing/deployments"
+                exit 0
+                ;;
+              FAILED)
+                echo "::error::The Central deployment failed validation. Validator errors:"
+                printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin).get("errors", []), indent=2))'
+                exit 1
+                ;;
+            esac
+            sleep 20
+          done
+          echo "::warning::The deployment is still not published after 15 minutes. Check https://central.sonatype.com/publishing/deployments"
 
       - name: Attach the bundle to the GitHub release
         uses: softprops/action-gh-release@v2
