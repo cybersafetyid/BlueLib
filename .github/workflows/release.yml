@@ -160,8 +160,22 @@ jobs:
           done
           echo "::warning::The deployment is still not published after 15 minutes. Check https://central.sonatype.com/publishing/deployments"
 
+      # The release page mirrors CHANGELOG.md, so the changelog stays the single source of truth for what
+      # changed in a version. A version without a changelog section must not be released.
+      - name: Extract release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          awk -v v="$VERSION" 'index($0, "## [" v "]") == 1 { p = 1; next } /^## \[/ { p = 0 } p' CHANGELOG.md \
+            | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error::CHANGELOG.md has no entry for version $VERSION. Add a '## [$VERSION]' section first."
+            exit 1
+          fi
+
       - name: Attach the bundle to the GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: central-bundle.zip
-          generate_release_notes: true
+          body_path: release-notes.md
+          generate_release_notes: false
