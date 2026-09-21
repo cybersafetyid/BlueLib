@@ -1,5 +1,6 @@
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 
 plugins {
@@ -56,6 +57,32 @@ if (!isAndroidLibrary) {
     extensions.configure<JavaPluginExtension>("java") {
         withSourcesJar()
     }
+
+    // The Central validator requires a javadoc artifact from JVM modules — "Javadocs must be provided
+    // but not found in entries" is what rejected bluelib-core and bluelib-testing in the first v0.1.0
+    // deployment (Android AARs are exempt, so Dokka is deliberately not applied to them). Applied via
+    // `apply` rather than the plugins block so the choice can be conditional; the format plugin pulls
+    // in the Dokka base plugin itself, and applying the base plugin on top of it fails with
+    // "configuration 'dokkaPlugin' already exists" — so it must be this one id and no other.
+    apply(plugin = "org.jetbrains.dokka-javadoc")
+
+    tasks.register<Jar>("javadocJar") {
+        // Dokka 2.0.0 (V1 mode) names the task that fills build/dokka/javadoc this; there is no
+        // `dokkaJavadoc` task in this version despite what older guides say.
+        dependsOn("dokkaGeneratePublicationJavadoc")
+        from(layout.buildDirectory.dir("dokka/javadoc"))
+        archiveClassifier.set("javadoc")
+        description = "Assembles a jar of the Dokka-rendered, javadoc-style API documentation."
+        doLast {
+            val entries = archiveFile.get().asFile.let { jar ->
+                zipTree(jar).count()
+            }
+            check(entries > 0) {
+                "${archiveFile.get().asFile.name} is empty; Dokka wrote nothing to " +
+                    layout.buildDirectory.dir("dokka/javadoc").get().asFile
+            }
+        }
+    }
 }
 
 afterEvaluate {
@@ -69,6 +96,11 @@ afterEvaluate {
                 }
 
                 artifactId = project.name
+                // Registered above for JVM modules; attaching it here publishes it under the
+                // `javadoc` classifier that Central's validator looks for.
+                if (!isAndroidLibrary) {
+                    artifact(tasks.named("javadocJar"))
+                }
                 pom {
                     name.set("BlueLib ${project.name.removePrefix("bluelib-").replaceFirstChar { it.uppercase() }}")
                     description.set(

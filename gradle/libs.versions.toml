@@ -10,6 +10,9 @@ agp = "9.3.2"
 kotlin = "2.2.20"
 jvmTarget = "17"
 
+# Dokka renders the javadoc-style HTML that Central requires JVM modules to ship.
+dokka = "2.0.0"
+
 # Runtime dependencies ---------------------------------------------------
 androidxAnnotation = "1.9.1"
 coroutines = "1.10.2"
@@ -34,9 +37,11 @@ androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTes
 # Plugin dependencies for build-logic ------------------------------------
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

@@ -97,7 +97,7 @@ find out that a secret is wrong.
   -PsigningInMemoryKey="$(cat private-key.asc)" \
   -PsigningInMemoryKeyPassword='the-passphrase'
 
-find build/staging-deploy -name '*.asc' | wc -l     # 16: four modules x four files
+find build/staging-deploy -name '*.asc' | wc -l     # 18: four modules x (binaries, sources, POM, module) + 2 javadoc jars
 
 gpg --verify \
   build/staging-deploy/io/github/cybersafetyid/bluelib-core/0.1.0/bluelib-core-0.1.0.pom.asc \
@@ -158,10 +158,15 @@ After the deployment is `PUBLISHED`, the artifacts appear on Maven Central under
 
 | Artifact | Contents |
 | --- | --- |
-| `bluelib-core` | JAR, `-sources.jar`, POM, Gradle module metadata |
+| `bluelib-core` | JAR, `-sources.jar`, `-javadoc.jar` (Dokka), POM, Gradle module metadata |
+| `bluelib-testing` | JAR, `-sources.jar`, `-javadoc.jar` (Dokka), POM, Gradle module metadata |
 | `bluelib-android` | AAR (with consumer rules), `-sources.jar`, POM, module metadata |
 | `bluelib` | AAR (with consumer rules), `-sources.jar`, POM, module metadata |
-| `bluelib-testing` | JAR, `-sources.jar`, POM, module metadata |
+
+The javadoc jars exist because the Central validator rejects JVM modules without one — the first v0.1.0
+deployment failed with "Javadocs must be provided but not found in entries" for `bluelib-core` and
+`bluelib-testing`. Android AARs are exempt, so those two modules ship none. Because the JVM modules are
+100% Kotlin, the jars are built from Dokka's rendered HTML rather than the (empty) `javadoc` task.
 
 ## Troubleshooting the release
 
@@ -182,6 +187,12 @@ misconfiguration of yours.
 ```bash
 gh secret set SIGNING_IN_MEMORY_KEY < private-key.asc
 ```
+
+**`Javadocs must be provided but not found in entries`** for a JVM module. Central requires a
+`-javadoc.jar` from every JVM module (Android AARs are exempt); the convention plugin builds it from
+Dokka for exactly this reason, so this error means the jar was not attached — check that the module
+really goes through `bluelib.publish` and that `artifact(tasks.named("javadocJar"))` still runs for JVM
+modules.
 
 **A GitHub Actions job fails in about fifteen seconds with `Failed to find package 'tools'`.** That is
 `android-actions/setup-android@v3`, which installs the `tools` package that the SDK repository no longer
