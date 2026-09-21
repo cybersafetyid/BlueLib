@@ -20,7 +20,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
         debug {
@@ -33,24 +33,22 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-
-
     buildFeatures {
         viewBinding = true
     }
 }
 
 dependencies {
-    // Published library from Maven Central
-    implementation("io.github.cybersafetyid:bluelib:0.1.0")
+    // Local library module for development
+    implementation(project(":bluelib"))
 
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.constraintlayout)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation(kotlin("test"))
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinTest)
 }

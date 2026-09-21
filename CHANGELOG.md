@@ -6,6 +6,21 @@ All notable changes to BlueLib are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-09-21
+
+### Added
+
+* **Dynamic Auto Pairing** — `AutoPairFilter` and `AutoPairEngine` providing dynamic discovery and automatic bonding based on MAC address, exact device name, name prefix, service UUIDs, manufacturer ID, and RSSI proximity threshold (`minRssi`).
+* **Unified Bluetooth Messenger API** — `BluetoothMessenger` interface with `GattMessenger` (for BLE GATT characteristics) and `ClassicMessenger` (for RFCOMM/L2CAP sockets) to enable unified bi-directional messaging over connected Bluetooth sessions.
+* **Multi-Format Data Codecs** — `DataCodec` providing encoding/decoding and strict validation for Text (UTF-8, ASCII, ISO-8859-1), Hex, Binary bit-streams, Base64 (standard and URL-safe), and Raw bytes with typed error reporting (`BlueLibValidationException.InvalidPayload`).
+* **Packet Message Framers** — `MessageFramer` implementations including `DelimiterFramer` (`LINE_FEED`, `CRLF`, `NULL_BYTE`, or custom byte delimiters) and `LengthPrefixedFramer` (1, 2, or 4-byte headers) to handle message framing and stream packet reconstruction without memory overflow.
+* **Facade Extensions** — Exposed `blueLib.autoPair()`, `blueLib.createGattMessenger()`, and `blueLib.createClassicMessenger()` on the primary `BlueLib` facade.
+
+### Changed
+
+* **Build Dependencies** — Refactored build logic to use Version Catalog references (`libs.kotlinx.coroutines.core` and `libs.kotlinx.coroutines.test`).
+* **Validation Exceptions** — Refactored `BlueLibValidationException` constructor parameters for cleaner property access and added `BlueLibValidationException.EmptyFilter`.
+
 ## [0.1.0] — 2026-09-21
 
 First public release. Supports Android 5.0 (API 21) through Android 17 (API 37).
@@ -46,5 +61,6 @@ First public release. Supports Android 5.0 (API 21) through Android 17 (API 37).
   `verifyNoAndroidImports` domain check, Maven Central publishing with opt-in signing, and CI that also
   fails on a stale compatibility matrix.
 
-[Unreleased]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/cybersafetyid/BlueLib/releases/tag/v0.1.0
