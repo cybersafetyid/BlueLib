@@ -22,10 +22,12 @@ plugins {
  *   better than one that fails inside the signing plugin. The release workflow checks the secrets up
  *   front for the same reason.
  * * **The password is never null.** Gradle 9.5's `useInMemoryPgpKeys(key, null)` installs a signatory
- *   provider whose default signatory is *null* — no exception, no warning, just signing tasks that fail
- *   later with a message that names nothing useful. Verified against Gradle 9.5.0: the same key with
- *   `""` resolves, with `null` it does not. So an unset password secret becomes the empty string, and
- *   the resolved signatory is checked here so a bad key fails at configuration time instead.
+ *   provider whose default signatory is *null* — no exception, no warning. The build then dies at the
+ *   signing task with "Cannot perform signing task ':x' because it has no configured signatory", which
+ *   points at the task rather than the missing password. Verified against Gradle 9.5.0: the same key
+ *   resolves with `""` and does not with `null`, so an unset password secret becomes the empty string
+ *   here. A *wrong* password or a truncated key block is already loud ("Could not read PGP secret
+ *   key"), so there is nothing to paper over in those cases.
  * * **The POM is complete**: name, description, licence, SCM and developer, because Central rejects
  *   incomplete metadata and consumers read it in dependency insight reports.
  */
@@ -135,10 +137,10 @@ afterEvaluate {
             }
             if (resolved == null) {
                 throw GradleException(
-                    "BlueLib: the signing key was ignored by the signing plugin, which happens when the " +
-                        "armored block is truncated or the password is missing. Re-export the key with " +
-                        "'gpg --armor --export-secret-keys <KEY_ID>' and set both secrets from " +
-                        "docs/releasing.md.",
+                    "BlueLib: the signing plugin produced no signatory for the supplied key, so the " +
+                        "release would fail later with a message about the signing task instead of the " +
+                        "key. Check that `signingInMemoryKey` is the complete ASCII-armored block from " +
+                        "'gpg --armor --export-secret-keys <KEY_ID>'; see docs/releasing.md.",
                 )
             }
 
