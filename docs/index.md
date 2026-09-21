@@ -19,7 +19,7 @@ blueLib.scan(ScanRequest(timeoutMillis = 10_000))
 | Advertising | Legacy advertising on 5.0+, extended advertising sets on 8.0+, discoverable sets on 14+, payload budgets validated per mode |
 | GATT client | GATT over LE, `BluetoothGattConnectionSettings` on Android 17, MTU negotiation, PHY requests (2M and coded on 8.0+, high data throughput on 17), connection priority including DCK on 14+, notifications with automatic re-arming |
 | GATT server | Local services, automatic request answering, Client Characteristic Configuration tracking, long writes, notifications and indications |
-| Bluetooth Classic | BR/EDR discovery, bonding (including Android 16.1 bond-loss reasons and Android 17 autonomous re-pairing), RFCOMM and L2CAP sockets, `BluetoothSocketSettings` on Android 16+ |
+| Bluetooth Classic & Pairing | BR/EDR discovery, bonding (including Android 16.1 bond-loss reasons and Android 17 autonomous re-pairing), dynamic `autoPair` with `AutoPairFilter`, RFCOMM and L2CAP sockets, `BluetoothSocketSettings` on Android 16+ |
 | Permissions | The complete matrix from Android 5 to 17, including "denied" vs "never declared" |
 | Diagnostics | Every platform operation, state transition and typed error on one flow, with status codes preserved |
 

@@ -79,6 +79,36 @@ What BlueLib guarantees:
   constants exist since API 30, the public `createBond(int)` overload is API 37. Below that the platform
   chooses the transport, and BlueLib says so rather than calling a method that does not exist.
 
+### Dynamic Auto Pairing
+
+For workflows that require discovering and pairing with a target device without requiring the user to manually enter MAC addresses or pick from a list, BlueLib provides `blueLib.autoPair`:
+
+```kotlin
+val filter = AutoPairFilter(
+    deviceName = "SmartScale-Pro",
+    minRssi = -65, // Proximity threshold: device must be nearby
+    serviceUuids = listOf(BluetoothUuid.parse("0000181d-0000-1000-8000-00805f9b34fb")),
+    transport = Transport.LE,
+)
+
+blueLib.autoPair(filter).onSuccess { deviceId ->
+    println("Auto-paired with $deviceId")
+}.onFailure { error ->
+    println("Auto-pairing failed: ${error.message}")
+}
+```
+
+Dynamic matching criteria supported by `AutoPairFilter`:
+* `targetAddress` (`BluetoothAddress`): Exact MAC address matching.
+* `deviceName` (`String`): Exact device name.
+* `namePrefix` (`String`): Case-insensitive device name prefix.
+* `serviceUuids` (`List<BluetoothUuid>`): Advertised GATT service UUIDs.
+* `manufacturerId` (`Int`): Manufacturer company SIG identifier.
+* `minRssi` (`Int`): Minimum signal strength threshold in dBm (e.g. `-70`).
+* `transport` (`Transport`): Transport selection (`AUTO`, `LE`, `BREDR`).
+
+If the discovered target device is already bonded, `autoPair` returns immediately with `BlueLibResult.Success(deviceId)` without re-requesting a bond.
+
 ### Bond loss on Android 16.1 and 17
 
 Android 16.1 added `EXTRA_BOND_LOSS_REASON` to the bond broadcast, and Android 17 added **autonomous

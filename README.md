@@ -33,7 +33,8 @@ BlueLib is a coroutine-first Android Bluetooth library supporting Android 5.0 (A
 - **Structured Error Taxonomy**: Wraps Android platform status codes into typed `BlueLibError` instances with recovery hints (`isRetryable`) and documentation anchors.
 - **Platform Protection**: Built-in `ScanQuotaGovernor` prevents system scan throttling and leak-resistant session lifecycle management.
 - **Pure Kotlin Domain**: Core business logic and state machines reside in `bluelib-core` without Android framework dependencies.
-- **Complete Feature Set**: Supports BLE scanning, advertising, GATT client/server, bonding, RFCOMM sockets, and L2CAP channels.
+- **Complete Feature Set**: Supports BLE scanning, advertising, GATT client/server, bonding, dynamic auto-pairing, RFCOMM sockets, and L2CAP channels.
+- **Dynamic Auto Pairing**: Automated discovery and bonding using `AutoPairFilter` (MAC, name, name prefix, service UUIDs, manufacturer ID, and RSSI proximity).
 - **Test Infrastructure**: `bluelib-testing` module provides fakes for hardware-free unit and integration testing.
 
 ---
@@ -114,6 +115,20 @@ blueLib.scan(ScanRequest(timeoutMillis = 10_000))
     .collect { event ->
         println("Device: ${event.observation.deviceId}, RSSI: ${event.observation.rssi}")
     }
+```
+
+### Dynamic Auto Pairing
+
+```kotlin
+val filter = AutoPairFilter(
+    deviceName = "SmartScale-Pro",
+    minRssi = -65, // Proximity filtering
+    serviceUuids = listOf(BluetoothUuid.parse("0000181d-0000-1000-8000-00805f9b34fb")),
+)
+
+blueLib.autoPair(filter).onSuccess { deviceId ->
+    println("Auto-paired with device: $deviceId")
+}
 ```
 
 ### GATT Connection & Operations
