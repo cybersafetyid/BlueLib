@@ -1,5 +1,14 @@
 # BlueLib
 
+[![CI](https://github.com/cybersafetyid/BlueLib/actions/workflows/ci.yml/badge.svg)](https://github.com/cybersafetyid/BlueLib/actions/workflows/ci.yml)
+[![Docs](https://github.com/cybersafetyid/BlueLib/actions/workflows/docs.yml/badge.svg)](https://github.com/cybersafetyid/BlueLib/actions/workflows/docs.yml)
+[![Release](https://github.com/cybersafetyid/BlueLib/actions/workflows/release.yml/badge.svg)](https://github.com/cybersafetyid/BlueLib/actions/workflows/release.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.cybersafetyid/bluelib)](https://central.sonatype.com/artifact/io.github.cybersafetyid/bluelib)
+[![Documentation](https://img.shields.io/website?url=https%3A%2F%2Fcybersafetyid.github.io%2FBlueLib%2F&label=documentation)](https://cybersafetyid.github.io/BlueLib/)
+[![API](https://img.shields.io/badge/API-21%E2%86%9237-3DDC84)](https://cybersafetyid.github.io/BlueLib/compatibility-matrix/)
+[![Licence](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
+<!-- The Maven Central badge is live and switches to v0.1.0 by itself once the release publishes; until then it reads 'not found', which is the truth. -->
+
 **A Bluetooth library for Android that runs on Android 5.0 (API 21) all the way to Android 17 (API 37).**
 
 BlueLib wraps the whole Android Bluetooth surface — BLE scanning and advertising, GATT client and
@@ -59,6 +68,10 @@ dependencies {
   running API level.
 
 ## Documentation
+
+The full manual is published at **[cybersafetyid.github.io/BlueLib](https://cybersafetyid.github.io/BlueLib/)**
+and redeploys automatically on every push to `main` that touches the docs. The same pages, browsable in
+this repository:
 
 | Guide | What it covers |
 | --- | --- |
