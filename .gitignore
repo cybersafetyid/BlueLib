@@ -1,6 +1,14 @@
 # Gradle files
 .gradle/
 build/
+.kotlin/
+
+# Local Gradle distribution used to bootstrap the wrapper
+.gradle-dist/
+
+# Agent skills installed locally with "npx add-skill" (see docs/contributing.md; the installed set is
+# recorded in skills-lock.json so a fresh clone can reproduce it)
+.agents/skills/
 
 # Local configuration file (sdk path, etc)
 local.properties

@@ -1,0 +1,84 @@
+site_name: BlueLib
+site_description: Bluetooth for Android 5.0 (API 21) through Android 17 (API 37), with typed errors and explicit compatibility handling.
+site_url: https://cybersafetyid.github.io/BlueLib/
+repo_url: https://github.com/cybersafetyid/BlueLib
+repo_name: cybersafetyid/BlueLib
+edit_uri: edit/main/docs/
+copyright: Apache License 2.0 · BlueLib is not affiliated with the Bluetooth SIG, Google or any device vendor.
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - content.tabs.link
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Architecture: architecture.md
+  - Guides:
+      - Permissions and pairing: guides/permissions-and-pairing.md
+      - Scanning: guides/scanning.md
+      - Advertising: guides/advertising.md
+      - GATT client: guides/gatt-client.md
+      - GATT server: guides/gatt-server.md
+      - Bluetooth Classic: guides/classic.md
+      - Testing: guides/testing.md
+  - Compatibility matrix: compatibility-matrix.md
+  - Troubleshooting: troubleshooting.md
+  - Research notes:
+      - Android 5 to 17: what changed for Bluetooth: research/android-17-bluetooth.md
+      - GATT pitfalls on real devices: research/gatt-pitfalls.md
+  - Decisions:
+      - 0001 Multi-module clean architecture: adr/0001-clean-architecture.md
+      - 0002 minSdk 21 through compileSdk 37: adr/0002-api-range.md
+      - 0003 Typed errors instead of exceptions: adr/0003-typed-errors.md
+      - 0004 No hidden or privileged APIs: adr/0004-no-hidden-apis.md
+  - Releasing: releasing.md
+  - Roadmap: roadmap.md
+  - Contributing: contributing.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/cybersafetyid/BlueLib

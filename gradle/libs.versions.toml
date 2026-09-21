@@ -1,0 +1,42 @@
+[versions]
+# Android API levels ------------------------------------------------------
+compileSdk = "37"
+targetSdk = "37"
+# BlueLib itself supports Android 5.0 (Lollipop, API 21) and newer.
+minSdk = "21"
+
+# Build tooling ----------------------------------------------------------
+agp = "9.3.2"
+kotlin = "2.2.20"
+jvmTarget = "17"
+
+# Runtime dependencies ---------------------------------------------------
+androidxAnnotation = "1.9.1"
+coroutines = "1.10.2"
+
+# Test dependencies ------------------------------------------------------
+junit = "5.11.4"
+# Robolectric tracks the Android release it can emulate, not its own major version.
+robolectric = "4.17"
+androidxTestCore = "1.7.0"
+
+[libraries]
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+
+# Plugin dependencies for build-logic ------------------------------------
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

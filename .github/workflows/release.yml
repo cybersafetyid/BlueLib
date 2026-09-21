@@ -1,0 +1,98 @@
+name: Release
+
+# Releases are cut from tags, never from a branch: the tag is the only thing that can be reproduced
+# later, and Maven Central never forgets an artifact.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (must match BlueLibVersion.VERSION)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install platform and build tools
+        run: |
+          sdkmanager --install \
+            "platforms;android-37" \
+            "build-tools;37.0.0" \
+            "platform-tools"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The published version and the constant compiled into the artifacts must agree, otherwise a bug
+      # report can never be traced back to a release.
+      - name: Assert BlueLibVersion matches the tag
+        run: |
+          ./gradlew -Pbluelib.version="${{ steps.version.outputs.value }}" verifyVersionConsistency
+
+      - name: Check
+        run: ./gradlew check
+
+      # A stale staging directory would end up inside the Central bundle, and Central rejects bundles
+      # that contain an unexpected version. Start from an empty one.
+      - name: Clean the staging directory
+        run: rm -rf build/staging-deploy
+
+      - name: Publish signed artifacts to the staging directory
+        env:
+          SIGNING_IN_MEMORY_KEY: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          SIGNING_IN_MEMORY_KEY_PASSWORD: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+        run: |
+          ./gradlew \
+            -Pbluelib.version="${{ steps.version.outputs.value }}" \
+            -PsigningInMemoryKey="$SIGNING_IN_MEMORY_KEY" \
+            -PsigningInMemoryKeyPassword="$SIGNING_IN_MEMORY_KEY_PASSWORD" \
+            publishAllPublicationsToStagingRepository
+
+      - name: Bundle the staging repository
+        run: |
+          cd build/staging-deploy
+          zip -r "$GITHUB_WORKSPACE/central-bundle.zip" .
+        working-directory: .
+
+      - name: Upload to the Maven Central Portal
+        env:
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_PORTAL_TOKEN }}
+        run: |
+          curl --fail-with-body \
+            -X POST \
+            -H "Authorization: Bearer $CENTRAL_TOKEN" \
+            -F "bundle=@central-bundle.zip" \
+            -F "name=${{ github.repository }}-${{ steps.version.outputs.value }}" \
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
+
+      - name: Attach the bundle to the GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: central-bundle.zip
+          generate_release_notes: true
