@@ -17,6 +17,7 @@ import io.github.cybersafetyid.bluelib.port.ScanEvent
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Engine executing the auto-pairing workflow for a given [AutoPairFilter].
@@ -98,7 +99,7 @@ public object AutoPairEngine {
             ),
         )
 
-        return withTimeoutOrNull(timeoutMillis) {
+        return withTimeoutOrNull(timeoutMillis.milliseconds) {
             scanPort.scan(scanRequest)
                 .filterIsInstance<ScanEvent.Observed>()
                 .firstOrNull { event -> filter.matches(event.observation) }
@@ -111,7 +112,7 @@ public object AutoPairEngine {
         classicPort: ClassicPort,
         timeoutMillis: Long,
     ): BluetoothDeviceId? {
-        return withTimeoutOrNull(timeoutMillis) {
+        return withTimeoutOrNull(timeoutMillis.milliseconds) {
             classicPort.discover(includeRssi = filter.minRssi != null)
                 .filterIsInstance<ClassicDiscoveryEvent.DeviceFound>()
                 .firstOrNull { event -> filter.matches(event.device, event.rssi) }

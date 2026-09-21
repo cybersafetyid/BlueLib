@@ -5,4 +5,5 @@ plugins {
 
 dependencies {
     api(project(":bluelib-core"))
+    testImplementation(libs.kotlinx.coroutines.test)
 }

@@ -17,7 +17,7 @@ public sealed class BlueLibValidationException(
 
     /** A [BluetoothAddress][io.github.cybersafetyid.bluelib.domain.model.BluetoothAddress] was malformed. */
     public class InvalidAddress(
-        public val raw: String,
+        raw: String,
     ) : BlueLibValidationException(
         "Not a valid Bluetooth address: '$raw'. Expected six octets such as 00:11:22:33:44:55.",
     ) {
@@ -26,7 +26,7 @@ public sealed class BlueLibValidationException(
 
     /** A UUID was malformed. */
     public class InvalidUuid(
-        public val raw: String,
+        raw: String,
         cause: Throwable? = null,
     ) : BlueLibValidationException("Not a valid UUID: '$raw'.", cause) {
         override val docsAnchor: String = "invalid-uuid"
@@ -35,7 +35,7 @@ public sealed class BlueLibValidationException(
     /** An MTU value is outside the range the Bluetooth specification allows. */
     public class InvalidMtu(
         public val requested: Int,
-        public val allowedRange: IntRange = MINIMUM_MTU..MAXIMUM_MTU,
+        allowedRange: IntRange = MINIMUM_MTU..MAXIMUM_MTU,
     ) : BlueLibValidationException(
         "MTU $requested is invalid: the ATT default is $MINIMUM_MTU and Android refuses values " +
             "above $MAXIMUM_MTU (allowed: $allowedRange).",
@@ -46,7 +46,7 @@ public sealed class BlueLibValidationException(
     /** A PHY mask is empty or contains undefined bits. */
     public class InvalidPhyMask(
         public val mask: Int,
-        public val validMask: Int,
+        validMask: Int,
     ) : BlueLibValidationException(
         "PHY mask 0x${mask.toString(16)} is invalid, expected a non-empty subset of 0x${validMask.toString(16)}.",
     ) {
@@ -104,8 +104,8 @@ public sealed class BlueLibValidationException(
     /** Two `BlueLib` calls that must be serialised were issued at the same time. */
     public class ConcurrentOperation(
         public val device: String,
-        public val inFlight: String,
-        public val attempted: String,
+        inFlight: String,
+        attempted: String,
     ) : BlueLibValidationException(
         "A '$inFlight' operation is already running for $device; '$attempted' was rejected. " +
             "BlueLib serialises GATT work per device to avoid Android's silent operation drops.",

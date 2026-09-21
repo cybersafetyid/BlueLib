@@ -4,12 +4,11 @@ plugins {
 }
 
 dependencies {
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    api(libs.kotlinx.coroutines.core)
 
     // `runTest` gives the domain tests a virtual clock, so retry and timeout policies are verified
     // without waiting for real time to pass.
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
-    testImplementation(project(":bluelib-testing"))
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 /** Sanity check used by CI to make sure the domain layer never links against the Android framework. */

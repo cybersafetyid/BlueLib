@@ -16,4 +16,7 @@ android {
 dependencies {
     api(project(":bluelib-core"))
     api(project(":bluelib-android"))
+
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(project(":bluelib-testing"))
 }

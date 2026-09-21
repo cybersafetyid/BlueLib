@@ -34,24 +34,26 @@ public data class AutoPairFilter(
 
     /** Validates that at least one matching criterion is provided and parameters are within valid ranges. */
     public fun validate() {
-        if (targetAddress == null &&
+        val isUnfiltered = (targetAddress == null) &&
             deviceName.isNullOrBlank() &&
             namePrefix.isNullOrBlank() &&
             serviceUuids.isEmpty() &&
-            manufacturerId == null &&
-            minRssi == null
-        ) {
+            (manufacturerId == null) &&
+            (minRssi == null)
+        if (isUnfiltered) {
             throw BlueLibValidationException.EmptyFilter(
                 "AutoPairFilter must specify at least one matching criterion " +
-                    "(targetAddress, deviceName, namePrefix, serviceUuids, manufacturerId, or minRssi)."
+                    "(targetAddress, deviceName, namePrefix, serviceUuids, manufacturerId, or minRssi).",
             )
         }
-        if (minRssi != null && minRssi !in ScanObservation.MIN_RSSI..ScanObservation.MAX_RSSI) {
-            throw BlueLibValidationException.ValueOutOfRange(
-                parameter = "minRssi",
-                value = minRssi.toLong(),
-                allowed = ScanObservation.MIN_RSSI.toLong()..ScanObservation.MAX_RSSI.toLong(),
-            )
+        if (minRssi != null) {
+            if (minRssi < ScanObservation.MIN_RSSI || minRssi > ScanObservation.MAX_RSSI) {
+                throw BlueLibValidationException.ValueOutOfRange(
+                    parameter = "minRssi",
+                    value = minRssi.toLong(),
+                    allowed = ScanObservation.MIN_RSSI.toLong()..ScanObservation.MAX_RSSI.toLong(),
+                )
+            }
         }
     }
 

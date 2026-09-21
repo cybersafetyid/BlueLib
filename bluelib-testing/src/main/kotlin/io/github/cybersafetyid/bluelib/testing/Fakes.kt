@@ -362,7 +362,7 @@ public class FakeGattClient(
 /** Classic port with scripted discovery results and socket behaviour. */
 public class FakeClassicPort(
     private val discoveryEvents: List<ClassicDiscoveryEvent> = emptyList(),
-    private val bonded: List<ClassicDevice> = emptyList(),
+    bonded: List<ClassicDevice> = emptyList(),
 ) : ClassicPort {
 
     private val mutableBonded = MutableStateFlow(bonded)
@@ -458,7 +458,7 @@ public class FakeGattServer : GattServer {
 
     /** Simulates a central connecting. */
     public fun simulateConnection(connection: GattServerConnection) {
-        mutableConnections.value = mutableConnections.value + connection
+        mutableConnections.value += connection
     }
 
     override suspend fun notify(
@@ -498,14 +498,37 @@ public class FakeGattServer : GattServer {
         val status: Int,
         val offset: Int,
         val value: ByteArray?,
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Response) return false
+            if (deviceId != other.deviceId) return false
+            if (requestId != other.requestId) return false
+            if (status != other.status) return false
+            if (offset != other.offset) return false
+            if (value != null) {
+                if (other.value == null) return false
+                if (!value.contentEquals(other.value)) return false
+            } else if (other.value != null) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = deviceId.hashCode()
+            result = 31 * result + requestId
+            result = 31 * result + status
+            result = 31 * result + offset
+            result = 31 * result + (value?.contentHashCode() ?: 0)
+            return result
+        }
+    }
 }
 
 /** Adapter source that reports a fixed capability set. */
 public class FakeAdapterSource(
     private val features: Set<BluetoothFeature> = BluetoothFeature.entries.toSet(),
     private val available: Boolean = true,
-    private val state: String = "ON",
+    state: String = "ON",
     override val apiLevel: Int = 37,
     override val minorApiLevel: Int = 0,
 ) : io.github.cybersafetyid.bluelib.port.AdapterAvailabilityPort {

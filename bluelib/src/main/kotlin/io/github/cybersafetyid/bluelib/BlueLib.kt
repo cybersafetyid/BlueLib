@@ -2,6 +2,7 @@ package io.github.cybersafetyid.bluelib
 
 import android.content.Context
 import android.content.Intent
+import io.github.cybersafetyid.bluelib.BlueLib.Companion.create
 import io.github.cybersafetyid.bluelib.android.adapter.AndroidAdapterSource
 import io.github.cybersafetyid.bluelib.android.classic.AndroidClassicPort
 import io.github.cybersafetyid.bluelib.android.compat.ApiLevel
@@ -28,10 +29,9 @@ import io.github.cybersafetyid.bluelib.domain.model.ScanRequest
 import io.github.cybersafetyid.bluelib.domain.model.Transport
 import io.github.cybersafetyid.bluelib.domain.policy.AutoPairEngine
 import io.github.cybersafetyid.bluelib.domain.policy.ScanQuotaGovernor
-import io.github.cybersafetyid.bluelib.port.BleAdvertisePort
 import io.github.cybersafetyid.bluelib.port.ClassicConnection
-import io.github.cybersafetyid.bluelib.port.ClassicDiscoveryEvent
 import io.github.cybersafetyid.bluelib.port.ClassicDevice
+import io.github.cybersafetyid.bluelib.port.ClassicDiscoveryEvent
 import io.github.cybersafetyid.bluelib.port.ClassicPort
 import io.github.cybersafetyid.bluelib.port.DiagnosticEvent
 import io.github.cybersafetyid.bluelib.port.GattConnectRequest
