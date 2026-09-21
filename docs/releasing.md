@@ -46,12 +46,17 @@ keyserver before the first release. Both keyservers are sent to on purpose: `key
 Sonatype's documentation mentions and it will not serve the key until you confirm the e-mail address,
 while the Ubuntu keyserver serves it straight away.
 
-`private-key.asc` is a secret. `.gitignore` already excludes `*.asc` so it cannot be committed by
-accident, and it should be deleted once the secrets below are set:
+`private-key.asc` is a secret. `.gitignore` already excludes `*.asc` and `/.release-key/` so it cannot be
+committed by accident, and it should be deleted once the secrets below are set:
 
 ```bash
 rm -f private-key.asc
 ```
+
+Whatever remains — passphrase, exported key, revocation certificate — belongs in a password manager or
+similar offline backup **before** the first release. A lost passphrase means the key can never be used
+again, and a lost revocation certificate means a compromised key cannot be retired properly. On the
+machine that cut v0.1.0 this material lives in `.release-key/`, which `gradle clean` does not touch.
 
 ### 3. Put the secrets in GitHub
 
