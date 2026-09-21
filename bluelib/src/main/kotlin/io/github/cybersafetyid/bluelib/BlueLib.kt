@@ -17,15 +17,16 @@ import io.github.cybersafetyid.bluelib.android.permission.PermissionReport
 import io.github.cybersafetyid.bluelib.android.platform.PlatformDispatchers
 import io.github.cybersafetyid.bluelib.domain.BluetoothFeature
 import io.github.cybersafetyid.bluelib.domain.Capability
-import io.github.cybersafetyid.bluelib.domain.error.BlueLibError
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibResult
 import io.github.cybersafetyid.bluelib.domain.model.AdvertisingHandle
 import io.github.cybersafetyid.bluelib.domain.model.AdvertisingRequest
+import io.github.cybersafetyid.bluelib.domain.model.AutoPairFilter
 import io.github.cybersafetyid.bluelib.domain.model.BluetoothDeviceId
 import io.github.cybersafetyid.bluelib.domain.model.BluetoothUuid
 import io.github.cybersafetyid.bluelib.domain.model.GattServerConfig
 import io.github.cybersafetyid.bluelib.domain.model.ScanRequest
 import io.github.cybersafetyid.bluelib.domain.model.Transport
+import io.github.cybersafetyid.bluelib.domain.policy.AutoPairEngine
 import io.github.cybersafetyid.bluelib.domain.policy.ScanQuotaGovernor
 import io.github.cybersafetyid.bluelib.port.BleAdvertisePort
 import io.github.cybersafetyid.bluelib.port.ClassicConnection
@@ -177,6 +178,21 @@ public class BlueLib private constructor(
         deviceId: BluetoothDeviceId,
         transport: Transport = Transport.BREDR,
     ): BlueLibResult<Unit> = classic.bond(deviceId, transport, config.bondTimeoutMillis)
+
+    /**
+     * Discovers a device matching [filter] and creates a bond with it automatically.
+     *
+     * If the target device is already bonded, returns immediately with success.
+     */
+    public suspend fun autoPair(
+        filter: AutoPairFilter,
+        timeoutMillis: Long = config.bondTimeoutMillis,
+    ): BlueLibResult<BluetoothDeviceId> = AutoPairEngine.autoPair(
+        filter = filter,
+        scanPort = scanner,
+        classicPort = classic,
+        timeoutMillis = timeoutMillis,
+    )
 
     /** Opens an RFCOMM socket. */
     public suspend fun connectRfcomm(

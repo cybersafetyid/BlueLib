@@ -391,7 +391,19 @@ public class FakeClassicPort(
         timeoutMillis: Long,
     ): BlueLibResult<Unit> {
         bondRequests += deviceId
-        return bondFailure?.let { failureOf(it) } ?: successOf(Unit)
+        if (bondFailure != null) {
+            return failureOf(bondFailure!!)
+        }
+        val currentList = mutableBonded.value
+        val existingIndex = currentList.indexOfFirst { it.deviceId == deviceId }
+        if (existingIndex >= 0) {
+            val updated = currentList.toMutableList()
+            updated[existingIndex] = updated[existingIndex].copy(bondState = BondState.BONDED)
+            mutableBonded.value = updated
+        } else {
+            mutableBonded.value = currentList + ClassicDevice(deviceId = deviceId, bondState = BondState.BONDED)
+        }
+        return successOf(Unit)
     }
 
     override suspend fun unbond(deviceId: BluetoothDeviceId): BlueLibResult<Unit> = successOf(Unit)

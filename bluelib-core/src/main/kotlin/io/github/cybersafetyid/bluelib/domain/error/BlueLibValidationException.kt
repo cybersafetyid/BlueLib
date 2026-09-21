@@ -113,6 +113,13 @@ public sealed class BlueLibValidationException(
         override val docsAnchor: String = "concurrent-operations"
     }
 
+    /** An [AutoPairFilter][io.github.cybersafetyid.bluelib.domain.model.AutoPairFilter] was provided without any matching criteria. */
+    public class EmptyFilter(
+        message: String = "AutoPairFilter must specify at least one matching criterion.",
+    ) : BlueLibValidationException(message) {
+        override val docsAnchor: String = "empty-filter"
+    }
+
     public companion object {
         /** ATT minimum MTU required by the Bluetooth specification. */
         public const val MINIMUM_MTU: Int = 23
