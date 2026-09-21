@@ -18,7 +18,12 @@ import io.github.cybersafetyid.bluelib.android.permission.PermissionReport
 import io.github.cybersafetyid.bluelib.android.platform.PlatformDispatchers
 import io.github.cybersafetyid.bluelib.domain.BluetoothFeature
 import io.github.cybersafetyid.bluelib.domain.Capability
+import io.github.cybersafetyid.bluelib.domain.codec.MessageFramer
+import io.github.cybersafetyid.bluelib.domain.codec.RawFramer
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibResult
+import io.github.cybersafetyid.bluelib.domain.messenger.BluetoothMessenger
+import io.github.cybersafetyid.bluelib.domain.messenger.ClassicMessenger
+import io.github.cybersafetyid.bluelib.domain.messenger.GattMessenger
 import io.github.cybersafetyid.bluelib.domain.model.AdvertisingHandle
 import io.github.cybersafetyid.bluelib.domain.model.AdvertisingRequest
 import io.github.cybersafetyid.bluelib.domain.model.AutoPairFilter
@@ -27,6 +32,7 @@ import io.github.cybersafetyid.bluelib.domain.model.BluetoothUuid
 import io.github.cybersafetyid.bluelib.domain.model.GattServerConfig
 import io.github.cybersafetyid.bluelib.domain.model.ScanRequest
 import io.github.cybersafetyid.bluelib.domain.model.Transport
+import io.github.cybersafetyid.bluelib.domain.model.WriteMode
 import io.github.cybersafetyid.bluelib.domain.policy.AutoPairEngine
 import io.github.cybersafetyid.bluelib.domain.policy.ScanQuotaGovernor
 import io.github.cybersafetyid.bluelib.port.ClassicConnection
@@ -207,6 +213,32 @@ public class BlueLib private constructor(
         psm: Int,
         settings: SocketSettings = SocketSettings(),
     ): BlueLibResult<ClassicConnection> = classic.connectL2cap(deviceId, psm, settings)
+
+    // --- Messaging -----------------------------------------------------------------------------
+
+    /** Creates a [BluetoothMessenger] wrapping a BLE GATT characteristic on [session]. */
+    public fun createGattMessenger(
+        session: GattSession,
+        serviceUuid: BluetoothUuid,
+        characteristicUuid: BluetoothUuid,
+        writeMode: WriteMode = WriteMode.WITH_RESPONSE,
+        framer: MessageFramer = RawFramer,
+    ): BluetoothMessenger = GattMessenger(
+        session = session,
+        serviceUuid = serviceUuid,
+        characteristicUuid = characteristicUuid,
+        writeMode = writeMode,
+        framer = framer,
+    )
+
+    /** Creates a [BluetoothMessenger] wrapping a Classic socket [connection]. */
+    public fun createClassicMessenger(
+        connection: ClassicConnection,
+        framer: MessageFramer = RawFramer,
+    ): BluetoothMessenger = ClassicMessenger(
+        connection = connection,
+        framer = framer,
+    )
 
     // --- Permissions ---------------------------------------------------------------------------
 

@@ -34,6 +34,7 @@ BlueLib is a coroutine-first Android Bluetooth library supporting Android 5.0 (A
 - **Platform Protection**: Built-in `ScanQuotaGovernor` prevents system scan throttling and leak-resistant session lifecycle management.
 - **Pure Kotlin Domain**: Core business logic and state machines reside in `bluelib-core` without Android framework dependencies.
 - **Complete Feature Set**: Supports BLE scanning, advertising, GATT client/server, bonding, dynamic auto-pairing, RFCOMM sockets, and L2CAP channels.
+- **Multi-Format Data Messaging**: `BluetoothMessenger` with `DataCodec` and `MessageFramer` for robust bi-directional communication (Text UTF-8/ASCII, Hex, Binary, Base64, and Raw bytes).
 - **Dynamic Auto Pairing**: Automated discovery and bonding using `AutoPairFilter` (MAC, name, name prefix, service UUIDs, manufacturer ID, and RSSI proximity).
 - **Test Infrastructure**: `bluelib-testing` module provides fakes for hardware-free unit and integration testing.
 
@@ -136,15 +137,23 @@ blueLib.autoPair(filter).onSuccess { deviceId ->
 ```kotlin
 val session = blueLib.connect(deviceId).getOrThrow()
 
-session.write(
-    service = serviceUuid,
-    characteristic = characteristicUuid,
-    payload = byteArrayOf(0x01, 0x02),
-    mode = WriteMode.WITH_RESPONSE
-).onSuccess {
-    println("Write successful")
-}.onFailure { error ->
-    println("Operation failed [${error.code}]: ${error.message}")
+// Create a high-level Data Messenger with Line-Feed ('\n') framing
+val messenger = blueLib.createGattMessenger(
+    session = session,
+    serviceUuid = serviceUuid,
+    characteristicUuid = characteristicUuid,
+    framer = DelimiterFramer.LINE_FEED,
+)
+
+// Send data in various encodings
+messenger.sendText("Hello World!")
+messenger.sendHex("0A1B2C3D")
+messenger.sendBinary("01001000 01100101")
+messenger.sendBase64("SGVsbG8gQmx1ZXRvb3RoIQ==")
+
+// Collect incoming messages reactively as decoded text
+messenger.incomingText().collect { text ->
+    println("Received message: $text")
 }
 ```
 
