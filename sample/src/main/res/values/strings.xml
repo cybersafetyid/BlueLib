@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BlueLib Sample</string>
+    <string name="btn_start_scan">Start LE Scan</string>
+    <string name="btn_stop_scan">Stop Scan</string>
+    <string name="btn_check_permissions">Check Permissions</string>
+    <string name="status_idle">Status: Idle</string>
+    <string name="status_scanning">Status: Scanning&#8230;</string>
+    <string name="missing_scan_permission">Missing SCAN permission</string>
+    <string name="version_loading">BlueLib Version Loading&#8230;</string>
+    <string name="capabilities_probing">Capabilities: Probing&#8230;</string>
+    <string name="event_logs">Event Logs:</string>
+    <string name="version_format">Library: %1$s</string>
+    <string name="capabilities_format">API: %1$s\nHas Adapter: %2$b\nSupported Features: %3$d/%4$d</string>
+</resources>
