@@ -7,50 +7,67 @@
 [![Documentation](https://img.shields.io/website?url=https%3A%2F%2Fcybersafetyid.github.io%2FBlueLib%2F&label=documentation)](https://cybersafetyid.github.io/BlueLib/)
 [![API](https://img.shields.io/badge/API-21%E2%86%9237-3DDC84)](https://cybersafetyid.github.io/BlueLib/compatibility-matrix/)
 [![Licence](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
-<!-- The Maven Central badge is live and switches to v0.1.0 by itself once the release publishes; until then it reads 'not found', which is the truth. -->
 
-**A Bluetooth library for Android that runs on Android 5.0 (API 21) all the way to Android 17 (API 37).**
+BlueLib is a coroutine-first Android Bluetooth library supporting Android 5.0 (API 21) through Android 17 (API 37). It wraps the complete Android Bluetooth API surface—BLE scanning, advertising, GATT client, GATT server, bonding, RFCOMM, and L2CAP—behind a clean, type-safe reactive API with structured error handling and no hidden APIs.
 
-BlueLib wraps the whole Android Bluetooth surface — BLE scanning and advertising, GATT client and
-server, Bluetooth Classic discovery, bonding, RFCOMM and L2CAP — behind one coroutine-first API with
-typed errors, explicit compatibility handling and no hidden APIs.
+---
 
-```kotlin
-val blueLib = BlueLib.create(context)
+## Table of Contents
 
-blueLib.scan(ScanRequest(timeoutMillis = 10_000))
-    .filterIsInstance<ScanEvent.Observed>()
-    .collect { println("${it.observation.deviceId} rssi=${it.observation.rssi}") }
+- [Key Features](#key-features)
+- [Platform Comparison](#platform-comparison)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Module Architecture](#module-architecture)
+- [Documentation Guides](#documentation-guides)
+- [Contributing](#contributing)
+- [Building and Testing](#building-and-testing)
+- [License](#license)
 
-val session = blueLib.connect(deviceId).getOrThrow()
-session.write(service, characteristic, payload, WriteMode.WITH_RESPONSE)
-    .onFailure { error -> println("${error.code}: ${error.message}") }
-```
+---
 
-## Why another Bluetooth library?
+## Key Features
 
-Because Android's Bluetooth API is 11 years wide and its failure modes are invisible. BlueLib exists
-to make those failures explicit:
+- **Coroutine-First & Reactive**: Native Kotlin Coroutines and `Flow` support for asynchronous operations and event streaming.
+- **Structured Error Taxonomy**: Wraps Android platform status codes into typed `BlueLibError` instances with recovery hints (`isRetryable`) and documentation anchors.
+- **Platform Protection**: Built-in `ScanQuotaGovernor` prevents system scan throttling and leak-resistant session lifecycle management.
+- **Pure Kotlin Domain**: Core business logic and state machines reside in `bluelib-core` without Android framework dependencies.
+- **Complete Feature Set**: Supports BLE scanning, advertising, GATT client/server, bonding, RFCOMM sockets, and L2CAP channels.
+- **Test Infrastructure**: `bluelib-testing` module provides fakes for hardware-free unit and integration testing.
 
-| Problem in the platform | What BlueLib does |
+---
+
+## Platform Comparison
+
+| Platform Problem | BlueLib Solution |
 | --- | --- |
-| `connectGatt` failures arrive as `status` values inside callbacks | Every GATT status is mapped to a typed `BlueLibError` with `isRetryable` and a documentation anchor |
-| `status 133` from a leaked `BluetoothGatt` | One session per device, always closed, with leak reporting in `openConnections` |
-| Android throttles apps to 5 scan starts per 30 seconds | `ScanQuotaGovernor` refuses a sixth start *before* the platform does, and reports the exact retry delay |
-| Advertising payloads are silently truncated | The byte budget (31 legacy, `leMaximumAdvertisingDataLength` extended) is validated before the platform call |
-| Notifications stop after a reconnect | Subscriptions are remembered and re-armed with the Client Characteristic Configuration descriptor |
-| `BLUETOOTH`/`ACCESS_FINE_LOCATION` vs `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT` | A permission gateway that distinguishes *denied by the user* from *never declared in the manifest* |
-| New APIs appear mid-generation (Android 16.1 is API 36.1) | `ApiLevel.isAtLeast(36, 1)` reads `getMinorSdkVersion()`, so minor releases are handled instead of ignored |
-| A GATT server can hang a central for 30 seconds | Requests are answered from the local model by default, with `autoRespond = false` as the escape hatch |
+| Callback status codes (e.g. status 133) | Wrapped into typed `BlueLibError` with recovery guidance |
+| Scan quota throttling (5 starts per 30s) | Pre-execution throttling check via `ScanQuotaGovernor` |
+| Advertising payload truncation | Payload budget validation prior to platform execution |
+| Lost notifications on reconnect | Automatic CCCD descriptor re-subscription |
+| Permission matrix complexity (API 21 to 37) | Permission gateway distinguishing user denial from manifest declarations |
+| Minor SDK API changes (e.g. API 36.1) | `ApiLevel` checks supporting minor release detection |
+| GATT server hangs | Local model response handling by default with manual fallback |
 
-## Modules
+---
 
-| Artifact | Contents |
+## Requirements
+
+| Requirement | Specification |
 | --- | --- |
-| `io.github.cybersafetyid:bluelib` | The `BlueLib` facade: one object wiring everything, plus the capability report |
-| `io.github.cybersafetyid:bluelib-android` | Platform adapters: permissions, adapter state, scanner, advertiser, GATT client/server, Classic |
-| `io.github.cybersafetyid:bluelib-core` | Pure Kotlin domain: models, validation, policies, state machines, error taxonomy. No Android imports at all |
-| `io.github.cybersafetyid:bluelib-testing` | Fakes for every port, so application code can be tested without a radio |
+| Minimum SDK | API 21 (Android 5.0 Lollipop) |
+| Target & Compile SDK | API 37 (Android 17) |
+| Build Toolchain | AGP 9.1.1+, JDK 17 |
+| Language Target | Kotlin 2.2.0+, JVM 17 Bytecode |
+
+---
+
+## Installation
+
+Current Release Version: `0.1.0`
+
+### Kotlin DSL (`build.gradle.kts`)
 
 ```kotlin
 dependencies {
@@ -59,48 +76,135 @@ dependencies {
 }
 ```
 
-## Requirements
+### Groovy DSL (`build.gradle`)
 
-- **minSdk 21** (Android 5.0 Lollipop). Every platform call is guarded by an API level check, and the
-  Android Lint `NewApi`/`MissingPermission` checks run as errors in CI.
-- **compileSdk 37** and **AGP 9.1.1+** (the first toolchain that ships API 37).
-- **Java 17** for the build; the artifacts target JVM 17 bytecode, which Android desugars down to the
-  running API level.
-
-## Documentation
-
-The full manual is published at **[cybersafetyid.github.io/BlueLib](https://cybersafetyid.github.io/BlueLib/)**
-and redeploys automatically on every push to `main` that touches the docs. The same pages, browsable in
-this repository:
-
-| Guide | What it covers |
-| --- | --- |
-| [Getting started](docs/getting-started.md) | Install, first scan, permissions, lifecycle |
-| [Architecture](docs/architecture.md) | Clean architecture layout, ports and adapters, why the modules are split |
-| [Permissions and pairing](docs/guides/permissions-and-pairing.md) | The permission matrix from Android 5 to 17, bonding, Android 17 autonomous re-pairing |
-| [Scanning](docs/guides/scanning.md) | Filters, batching, background scans, the scan quota |
-| [Advertising](docs/guides/advertising.md) | Legacy vs extended sets, payload budgets, Auracast positioning |
-| [GATT client](docs/guides/gatt-client.md) | Connect, MTU, PHY, reads/writes, notifications, reconnection |
-| [GATT server](docs/guides/gatt-server.md) | Local services, auto-answering, subscriptions, long writes |
-| [Bluetooth Classic](docs/guides/classic.md) | Discovery, bonding, RFCOMM and L2CAP sockets |
-| [Testing](docs/guides/testing.md) | Using `bluelib-testing`, Robolectric and on-device test strategy |
-| [Compatibility matrix](docs/compatibility-matrix.md) | Generated from the Android SDK `api-versions.xml` — every API BlueLib depends on, and when it arrived |
-| [Troubleshooting](docs/troubleshooting.md) | One section per error code, with the action that fixes it |
-| [Research notes](docs/research/android-17-bluetooth.md) | What each Android release from 5 to 17 changed for Bluetooth, with sources |
-| [Roadmap](docs/roadmap.md) | What is shipped today and what comes next |
-
-## Building
-
-```bash
-./gradlew check                              # tests, lint, domain purity checks
-./gradlew generateCompatibilityMatrix        # refresh docs/compatibility-matrix.md
-./gradlew publishAllPublicationsToStagingRepository   # produce a Maven Central bundle
-mkdocs serve                                 # preview the documentation site
+```groovy
+dependencies {
+    implementation 'io.github.cybersafetyid:bluelib:0.1.0'
+    testImplementation 'io.github.cybersafetyid:bluelib-testing:0.1.0'
+}
 ```
 
-## Licence
+### Version Catalog (`gradle/libs.versions.toml`)
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+```toml
+[versions]
+bluelib = "0.1.0"
 
-BlueLib is not affiliated with the Bluetooth SIG, Google or any device vendor. It is an independent
-open source effort by [cybersafetyid](https://github.com/cybersafetyid).
+[libraries]
+bluelib = { module = "io.github.cybersafetyid:bluelib", version.ref = "bluelib" }
+bluelib-testing = { module = "io.github.cybersafetyid:bluelib-testing", version.ref = "bluelib" }
+```
+
+---
+
+## Quick Start
+
+### Initialize Facade
+
+```kotlin
+val blueLib = BlueLib.create(context)
+```
+
+### BLE Scanning
+
+```kotlin
+blueLib.scan(ScanRequest(timeoutMillis = 10_000))
+    .filterIsInstance<ScanEvent.Observed>()
+    .collect { event ->
+        println("Device: ${event.observation.deviceId}, RSSI: ${event.observation.rssi}")
+    }
+```
+
+### GATT Connection & Operations
+
+```kotlin
+val session = blueLib.connect(deviceId).getOrThrow()
+
+session.write(
+    service = serviceUuid,
+    characteristic = characteristicUuid,
+    payload = byteArrayOf(0x01, 0x02),
+    mode = WriteMode.WITH_RESPONSE
+).onSuccess {
+    println("Write successful")
+}.onFailure { error ->
+    println("Operation failed [${error.code}]: ${error.message}")
+}
+```
+
+---
+
+## Module Architecture
+
+BlueLib is split across four modules following clean architecture boundaries:
+
+| Module Artifact | Description |
+| --- | --- |
+| `io.github.cybersafetyid:bluelib` | Public facade unifying library capabilities |
+| `io.github.cybersafetyid:bluelib-android` | Android platform adapters (Permissions, Scanner, Advertiser, GATT, Classic) |
+| `io.github.cybersafetyid:bluelib-core` | Pure Kotlin domain layer (Models, Validation, State Machines, Error Taxonomy) |
+| `io.github.cybersafetyid:bluelib-testing` | Test fakes for hardware-free unit testing |
+
+---
+
+## Documentation Guides
+
+Full documentation is published at [cybersafetyid.github.io/BlueLib](https://cybersafetyid.github.io/BlueLib/).
+
+| Guide | Description |
+| --- | --- |
+| [Getting Started](docs/getting-started.md) | Setup, permissions, lifecycle, and initial operations |
+| [Architecture](docs/architecture.md) | Clean architecture breakdown, module rules, ports and adapters |
+| [Permissions & Pairing](docs/guides/permissions-and-pairing.md) | Permission requirements across API 21-37 and bonding workflows |
+| [BLE Scanning](docs/guides/scanning.md) | Filters, background scanning, and quota management |
+| [BLE Advertising](docs/guides/advertising.md) | Legacy vs extended sets, payload constraints, and positioning |
+| [GATT Client](docs/guides/gatt-client.md) | Connection lifecycle, MTU, PHY, reads, writes, and notifications |
+| [GATT Server](docs/guides/gatt-server.md) | Service setup, auto-responses, and subscription tracking |
+| [Bluetooth Classic](docs/guides/classic.md) | Device discovery, RFCOMM sockets, and L2CAP channels |
+| [Testing Strategy](docs/guides/testing.md) | Unit testing using `bluelib-testing` and Robolectric |
+| [Compatibility Matrix](docs/compatibility-matrix.md) | Complete SDK API compatibility mapping |
+| [Troubleshooting](docs/troubleshooting.md) | Diagnostic rules and resolution steps for error codes |
+| [Research Notes](docs/research/android-17-bluetooth.md) | Deep dive into Android 5 through 17 Bluetooth platform changes |
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [docs/contributing.md](docs/contributing.md) for full development guidelines.
+
+### Core Development Principles
+
+1. **Domain Isolation**: `bluelib-core` must never import `android.*` or `androidx.*` dependencies.
+2. **Safe API Guarding**: SDK checks must use `ApiLevel` utilities rather than raw `Build.VERSION.SDK_INT` comparisons.
+3. **Result Types**: Return `BlueLibResult.Failure` with a `BlueLibError` instance rather than throwing exceptions.
+4. **Test Coverage**: Every logic modification requires automated unit or integration tests.
+5. **Commit Message Standard**: Use `<scope>: <imperative summary>` format (e.g., `core: validate advertising payload length`).
+
+---
+
+## Building and Testing
+
+Verify changes locally using Gradle:
+
+```bash
+# Execute unit tests, linter, and domain isolation checks
+./gradlew check
+
+# Regenerate compatibility matrix documentation
+./gradlew generateCompatibilityMatrix
+
+# Build Maven Central staging publication bundle
+./gradlew publishAllPublicationsToStagingRepository
+
+# Preview documentation locally (requires MkDocs)
+mkdocs serve
+```
+
+---
+
+## License
+
+BlueLib is licensed under the [Apache License 2.0](LICENSE).
+
+BlueLib is an independent open-source project maintained by [cybersafetyid](https://github.com/cybersafetyid) and is not affiliated with Google, Bluetooth SIG, or any device manufacturer.
