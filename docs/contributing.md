@@ -13,8 +13,9 @@ cd BlueLib
 mkdocs serve                                 # preview the docs locally
 ```
 
-Requirements: JDK 17, Android SDK with `platforms;android-37` and `build-tools;37.0.0`. AGP 9.1.1 or newer
-is required to build against API 37.
+Requirements: JDK 17 and the Android SDK with `platforms;android-37.0` — API 37 ships as a minor-versioned
+platform, and there is no `build-tools;37.0.0` yet, so the build uses `build-tools;36.1.0` and lets AGP
+download anything else it needs. AGP 9.1.1 or newer is required to build against API 37.
 
 ## Non-negotiable rules
 
