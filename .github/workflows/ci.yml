@@ -79,9 +79,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
 
       - name: Install MkDocs Material
-        run: pip install mkdocs-material
+        run: pip install -r docs/requirements.txt
 
       - name: Build the site strictly
         run: mkdocs build --strict

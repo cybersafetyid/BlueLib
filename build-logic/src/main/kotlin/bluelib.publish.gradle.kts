@@ -16,9 +16,16 @@ plugins {
  *   fills `<root>/build/staging-deploy` — one directory shared by every module, laid out the way the
  *   Central Portal expects a bundle — which the release workflow zips and uploads. A build that cannot
  *   reach the network cannot half-publish a release.
- * * **Signing is opt-in.** `signAllPublications()` is only configured when a key is present, so
- *   `./gradlew build` works for contributors who have no PGP key — CI does have one, and the release
- *   workflow asserts that signatures exist before uploading.
+ * * **Signing is opt-in.** It is only configured when a non-blank key is present, so `./gradlew build`
+ *   works for contributors who have no PGP key. A *blank* key counts as absent: GitHub expands a secret
+ *   that was never created to an empty string, and a release that fails with "no signature" is far
+ *   better than one that fails inside the signing plugin. The release workflow checks the secrets up
+ *   front for the same reason.
+ * * **The password is never null.** Gradle 9.5's `useInMemoryPgpKeys(key, null)` installs a signatory
+ *   provider whose default signatory is *null* — no exception, no warning, just signing tasks that fail
+ *   later with a message that names nothing useful. Verified against Gradle 9.5.0: the same key with
+ *   `""` resolves, with `null` it does not. So an unset password secret becomes the empty string, and
+ *   the resolved signatory is checked here so a bad key fails at configuration time instead.
  * * **The POM is complete**: name, description, licence, SCM and developer, because Central rejects
  *   incomplete metadata and consumers read it in dependency insight reports.
  */
@@ -96,15 +103,47 @@ afterEvaluate {
         }
     }
 
-    val signingKey = providers.gradleProperty("signingInMemoryKey").orNull
-    if (signingKey != null) {
+    // `takeIf { isNotBlank() }` matters: an unset GitHub secret arrives as an empty string, and
+    // treating that as "a key is configured" turns a clear "you forgot a secret" into an opaque
+    // signing failure.
+    val signingKey = providers.gradleProperty("signingInMemoryKey").orNull?.takeIf { it.isNotBlank() }
+
+    // Deliberately `?: ""` and deliberately *not* `takeIf { it.isNotBlank() }`: see the class comment.
+    // A passphrase-less key is legitimate, and Gradle needs something non-null here either way.
+    val signingPassword = providers.gradleProperty("signingInMemoryKeyPassword").orNull ?: ""
+
+    if (signingKey == null) {
+        logger.lifecycle(
+            "BlueLib: signing is not configured (no -PsigningInMemoryKey), so the staged artifacts " +
+                "are unsigned. Maven Central only accepts signed artifacts; see docs/releasing.md.",
+        )
+    } else {
         extensions.configure<SigningExtension>("signing") {
             // The key is passed as an in-memory PGP block by CI; no keyring file is ever written.
-            useInMemoryPgpKeys(
-                signingKey,
-                providers.gradleProperty("signingInMemoryKeyPassword").orNull,
-            )
+            useInMemoryPgpKeys(signingKey, signingPassword)
+
+            // Gradle reports neither a malformed key block nor a null password by throwing here; it
+            // either fails much later or not at all. Resolving the signatory once, now, is the only
+            // place we can turn that into a message that says what to fix.
+            val resolved = runCatching { signatory }.getOrElse { cause ->
+                throw GradleException(
+                    "BlueLib: the signing key could not be read. The `signingInMemoryKey` value must be " +
+                        "the whole ASCII-armored block, including the BEGIN and END lines. " +
+                        "See docs/releasing.md.",
+                    cause,
+                )
+            }
+            if (resolved == null) {
+                throw GradleException(
+                    "BlueLib: the signing key was ignored by the signing plugin, which happens when the " +
+                        "armored block is truncated or the password is missing. Re-export the key with " +
+                        "'gpg --armor --export-secret-keys <KEY_ID>' and set both secrets from " +
+                        "docs/releasing.md.",
+                )
+            }
+
             sign(extensions.getByType<PublishingExtension>().publications)
         }
+        logger.lifecycle("BlueLib: signing with the supplied in-memory PGP key.")
     }
 }

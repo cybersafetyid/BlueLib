@@ -1,0 +1,4 @@
+# Documentation toolchain. Pinned to a compatible range rather than an exact version: a patch release
+# of MkDocs Material should not turn a docs job red on an unrelated pull request, while a new major
+# version should be reviewed deliberately.
+mkdocs-material>=9.5,<10

@@ -40,6 +40,26 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # Fail before anything else runs. An unset secret expands to an empty string, and the signing
+      # plugin's complaint about it is far less useful than "SIGNING_IN_MEMORY_KEY is not set".
+      - name: Verify the release secrets are configured
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+          PORTAL_TOKEN: ${{ secrets.CENTRAL_PORTAL_TOKEN }}
+        run: |
+          missing=""
+          if [ -z "$SIGNING_KEY" ]; then missing="$missing SIGNING_IN_MEMORY_KEY"; fi
+          if [ -z "$PORTAL_TOKEN" ]; then missing="$missing CENTRAL_PORTAL_TOKEN"; fi
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing — see docs/releasing.md#one-time-setup"
+            exit 1
+          fi
+          if [ -z "$SIGNING_PASSWORD" ]; then
+            echo "::warning::SIGNING_IN_MEMORY_KEY_PASSWORD is empty; assuming the key has no passphrase."
+          fi
+          echo "Release secrets are present."
+
       - name: Resolve version
         id: version
         run: |
