@@ -47,7 +47,7 @@ nav:
   - Compatibility matrix: compatibility-matrix.md
   - Troubleshooting: troubleshooting.md
   - Research notes:
-      - Android 5 to 17: what changed for Bluetooth: research/android-17-bluetooth.md
+      - "Android 5 to 17: what changed for Bluetooth": research/android-17-bluetooth.md
       - GATT pitfalls on real devices: research/gatt-pitfalls.md
   - Decisions:
       - 0001 Multi-module clean architecture: adr/0001-clean-architecture.md
