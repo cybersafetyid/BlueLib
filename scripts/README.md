@@ -51,8 +51,8 @@ When `CHANGELOG.md` validation passes for target version `X.Y.Z`:
 2. `bluelib-core/.../BlueLibVersion.kt` (`VERSION`)
 3. `README.md` (version references)
 4. `docs/getting-started.md` (version references)
-5. `sample/build.gradle.kts` (dependency version)
-6. `sample/.../SampleUnitTest.kt` (test assertion version string)
-7. Creates Git commit: `release: vX.Y.Z`
-8. Creates Git annotated tag: `vX.Y.Z`
-9. Pushes branch and tag `vX.Y.Z` to `origin`
+5. `sample/.../SampleUnitTest.kt` (test assertion version string)
+*(Note: `sample/build.gradle.kts` uses local `project(":bluelib")` dependency and is intentionally excluded from remote coordinates bump)*
+6. Creates Git commit: `release: vX.Y.Z`
+7. Creates Git annotated tag: `vX.Y.Z`
+8. Pushes branch and tag `vX.Y.Z` to `origin`

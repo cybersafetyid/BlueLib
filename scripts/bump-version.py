@@ -37,7 +37,6 @@ def main():
     bluelib_version_kt_path = root_dir / "bluelib-core" / "src" / "main" / "kotlin" / "io" / "github" / "cybersafetyid" / "bluelib" / "BlueLibVersion.kt"
     readme_path = root_dir / "README.md"
     getting_started_path = root_dir / "docs" / "getting-started.md"
-    sample_build_path = root_dir / "sample" / "build.gradle.kts"
     sample_test_path = root_dir / "sample" / "src" / "test" / "kotlin" / "io" / "github" / "cybersafetyid" / "bluelib" / "sample" / "SampleUnitTest.kt"
 
     # Step 1: Validate CHANGELOG.md entry exists for target version
@@ -121,14 +120,6 @@ def main():
         if new_gs_text != gs_text:
             getting_started_path.write_text(new_gs_text, encoding="utf-8")
             files_to_update.append(getting_started_path)
-
-    # Update sample/build.gradle.kts
-    if sample_build_path.exists():
-        sb_text = sample_build_path.read_text(encoding="utf-8")
-        new_sb_text = sb_text.replace(current_version, target_version)
-        if new_sb_text != sb_text:
-            sample_build_path.write_text(new_sb_text, encoding="utf-8")
-            files_to_update.append(sample_build_path)
 
     # Update SampleUnitTest.kt
     if sample_test_path.exists():
