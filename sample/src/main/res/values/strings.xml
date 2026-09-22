@@ -4,6 +4,8 @@
     <string name="btn_start_scan">Start LE Scan</string>
     <string name="btn_stop_scan">Stop Scan</string>
     <string name="btn_check_permissions">Check Permissions</string>
+    <string name="btn_auto_pair">Auto Pair</string>
+    <string name="btn_test_codecs">Test Data Codecs</string>
     <string name="status_idle">Status: Idle</string>
     <string name="status_scanning">Status: Scanning&#8230;</string>
     <string name="missing_scan_permission">Missing SCAN permission</string>
