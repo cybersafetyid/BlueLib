@@ -41,7 +41,7 @@ android {
 dependencies {
     // Local library module for development
     // implementation(project(":bluelib"))
-    implementation("io.github.cybersafetyid:bluelib:0.1.1")
+    implementation("io.github.cybersafetyid:bluelib:0.1.2")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.appcompat)

@@ -11,6 +11,6 @@ class SampleUnitTest {
     fun verifyBlueLibVersion() {
         val version = BlueLib.version
         assertTrue("Version should start with BlueLib", version.startsWith("BlueLib"))
-        assertEquals("BlueLib 0.1.1", version)
+        assertEquals("BlueLib 0.1.2", version)
     }
 }

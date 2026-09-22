@@ -67,14 +67,14 @@ BlueLib is a coroutine-first Android Bluetooth library supporting Android 5.0 (A
 
 ## Installation
 
-Current Release Version: `0.1.1`
+Current Release Version: `0.1.2`
 
 ### Kotlin DSL (`build.gradle.kts`)
 
 ```kotlin
 dependencies {
-    implementation("io.github.cybersafetyid:bluelib:0.1.1")
-    testImplementation("io.github.cybersafetyid:bluelib-testing:0.1.1")
+    implementation("io.github.cybersafetyid:bluelib:0.1.2")
+    testImplementation("io.github.cybersafetyid:bluelib-testing:0.1.2")
 }
 ```
 
@@ -82,8 +82,8 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.cybersafetyid:bluelib:0.1.1'
-    testImplementation 'io.github.cybersafetyid:bluelib-testing:0.1.1'
+    implementation 'io.github.cybersafetyid:bluelib:0.1.2'
+    testImplementation 'io.github.cybersafetyid:bluelib-testing:0.1.2'
 }
 ```
 
@@ -91,7 +91,7 @@ dependencies {
 
 ```toml
 [versions]
-bluelib = "0.1.1"
+bluelib = "0.1.2"
 
 [libraries]
 bluelib = { module = "io.github.cybersafetyid:bluelib", version.ref = "bluelib" }
