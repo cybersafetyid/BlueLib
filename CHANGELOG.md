@@ -6,6 +6,17 @@ All notable changes to BlueLib are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-09-22
+
+### Added
+
+* **Sample App Demos** — Added interactive UI controls and flows in the `sample` application to demonstrate Dynamic Auto Pairing (`AutoPairFilter`) and Multi-Format Data Codecs (`DataCodec` / `DelimiterFramer`).
+
+### Changed
+
+* **Release Workflow Automation** — Updated GitHub Actions release workflow (`.github/workflows/release.yml`) to automatically extract release notes directly from `CHANGELOG.md` for GitHub release creation, enforcing changelog entry presence before release execution.
+* **Code Robustness & Maintenance** — Refactored core domain models and Android platform adapters (`GattServerRequest.WriteDescriptor`, `PayloadSegmenter`, `AndroidGattClient`, `PlatformCapabilities`) for improved memory efficiency, sequence processing, explicit value equality checks, and cleaner API visibility.
+
 ## [0.1.1] — 2026-09-21
 
 ### Added
@@ -61,6 +72,7 @@ First public release. Supports Android 5.0 (API 21) through Android 17 (API 37).
   `verifyNoAndroidImports` domain check, Maven Central publishing with opt-in signing, and CI that also
   fails on a stale compatibility matrix.
 
-[Unreleased]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/cybersafetyid/BlueLib/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/cybersafetyid/BlueLib/releases/tag/v0.1.0
