@@ -12,8 +12,11 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.os.Build
+import io.github.cybersafetyid.bluelib.android.adapter.AndroidAdapterSource
 import io.github.cybersafetyid.bluelib.android.compat.ApiLevel
 import io.github.cybersafetyid.bluelib.android.diagnostics.AndroidDiagnostics
+import io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation
+import io.github.cybersafetyid.bluelib.android.permission.PermissionGateway
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibError
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibResult
 import io.github.cybersafetyid.bluelib.domain.error.failureOf
@@ -520,8 +523,8 @@ public class AndroidGattServer internal constructor(
 @SuppressLint("MissingPermission")
 public class AndroidGattServerHost(
     private val context: Context,
-    private val adapterSource: io.github.cybersafetyid.bluelib.android.adapter.AndroidAdapterSource,
-    private val permissionGateway: io.github.cybersafetyid.bluelib.android.permission.PermissionGateway,
+    private val adapterSource: AndroidAdapterSource,
+    private val permissionGateway: PermissionGateway,
     private val diagnostics: AndroidDiagnostics,
 ) : io.github.cybersafetyid.bluelib.port.GattServerPort {
 
@@ -535,12 +538,12 @@ public class AndroidGattServerHost(
         current?.let { return successOf(it) }
 
         val permission = permissionGateway.requireOrFailure(
-            io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation.GATT_SERVER,
+            BluetoothOperation.GATT_SERVER,
         )
         permission.getOrNull() ?: return failureOf(permission.errorOrNull()!!)
 
         val adapter = adapterSource.requireReady(
-            io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation.GATT_SERVER,
+            BluetoothOperation.GATT_SERVER,
         )
         adapter.getOrNull() ?: return failureOf(adapter.errorOrNull()!!)
 
