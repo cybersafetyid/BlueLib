@@ -46,33 +46,31 @@ public data class AutoPairFilter(
                     "(targetAddress, deviceName, namePrefix, serviceUuids, manufacturerId, or minRssi).",
             )
         }
-        if (minRssi != null) {
-            if (minRssi < ScanObservation.MIN_RSSI || minRssi > ScanObservation.MAX_RSSI) {
-                throw BlueLibValidationException.ValueOutOfRange(
-                    parameter = "minRssi",
-                    value = minRssi.toLong(),
-                    allowed = ScanObservation.MIN_RSSI.toLong()..ScanObservation.MAX_RSSI.toLong(),
-                )
-            }
+        if ((minRssi != null) && ((minRssi < ScanObservation.MIN_RSSI) || (minRssi > ScanObservation.MAX_RSSI))) {
+            throw BlueLibValidationException.ValueOutOfRange(
+                parameter = "minRssi",
+                value = minRssi.toLong(),
+                allowed = ScanObservation.MIN_RSSI.toLong()..ScanObservation.MAX_RSSI.toLong(),
+            )
         }
     }
 
     /** Checks whether a BLE [observation] matches every specified criterion in this filter. */
     public fun matches(observation: ScanObservation): Boolean {
-        if (targetAddress != null && observation.deviceId.address != targetAddress) return false
-        if (deviceName != null && observation.deviceName != deviceName) return false
-        if (namePrefix != null && (observation.deviceName == null || !observation.deviceName.startsWith(namePrefix, ignoreCase = true))) return false
-        if (serviceUuids.isNotEmpty() && !observation.serviceUuids.containsAll(serviceUuids)) return false
-        if (manufacturerId != null && !observation.manufacturerData.containsKey(manufacturerId)) return false
-        return minRssi == null || observation.rssi >= minRssi
+        if ((targetAddress != null) && (observation.deviceId.address != targetAddress)) return false
+        if ((deviceName != null) && (observation.deviceName != deviceName)) return false
+        if ((namePrefix != null) && ((observation.deviceName == null) || (!observation.deviceName.startsWith(namePrefix, ignoreCase = true)))) return false
+        if (serviceUuids.isNotEmpty() && (!observation.serviceUuids.containsAll(serviceUuids))) return false
+        if ((manufacturerId != null) && (!observation.manufacturerData.containsKey(manufacturerId))) return false
+        return (minRssi == null) || (observation.rssi >= minRssi)
     }
 
     /** Checks whether a Classic [device] matches every specified criterion in this filter. */
     public fun matches(device: ClassicDevice, rssi: Int?): Boolean {
-        if (targetAddress != null && device.deviceId.address != targetAddress) return false
-        if (deviceName != null && device.name != deviceName) return false
-        if (namePrefix != null && (device.name == null || !device.name.startsWith(namePrefix, ignoreCase = true))) return false
-        if (serviceUuids.isNotEmpty() && !device.uuids.containsAll(serviceUuids)) return false
-        return minRssi == null || (rssi != null && rssi >= minRssi)
+        if ((targetAddress != null) && (device.deviceId.address != targetAddress)) return false
+        if ((deviceName != null) && (device.name != deviceName)) return false
+        if ((namePrefix != null) && ((device.name == null) || (!device.name.startsWith(namePrefix, ignoreCase = true)))) return false
+        if (serviceUuids.isNotEmpty() && (!device.uuids.containsAll(serviceUuids))) return false
+        return (minRssi == null) || ((rssi != null) && (rssi >= minRssi))
     }
 }

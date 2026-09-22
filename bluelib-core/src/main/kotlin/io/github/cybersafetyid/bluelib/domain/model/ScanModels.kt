@@ -59,7 +59,7 @@ public enum class ScanLostReason {
 /**
  * Everything a caller can ask of the scanner.
  *
- * All fields are validated in [init], so an invalid request can never reach Android and produce a
+ * All fields are validated on initialization, so an invalid request can never reach Android and produce a
  * silent failure (which is exactly what happens when, for example, a scan is started with an
  * unsupported PHY combination).
  */
@@ -92,14 +92,14 @@ public data class ScanRequest(
     val allowBackgroundScan: Boolean = false,
 ) {
     init {
-        if (deviceName != null && deviceName.length > MAX_ADVERTISED_NAME_LENGTH) {
+        if ((deviceName != null) && (deviceName.length > MAX_ADVERTISED_NAME_LENGTH)) {
             throw BlueLibValidationException.ValueOutOfRange(
                 parameter = "deviceName.length",
                 value = deviceName.length.toLong(),
                 allowed = 0L..MAX_ADVERTISED_NAME_LENGTH.toLong(),
             )
         }
-        if (namePrefix != null && namePrefix.length > MAX_ADVERTISED_NAME_LENGTH) {
+        if ((namePrefix != null) && (namePrefix.length > MAX_ADVERTISED_NAME_LENGTH)) {
             throw BlueLibValidationException.ValueOutOfRange(
                 parameter = "namePrefix.length",
                 value = namePrefix.length.toLong(),
@@ -107,7 +107,7 @@ public data class ScanRequest(
             )
         }
         manufacturerId?.let {
-            if (it !in 0..0xFFFF) {
+            if ((it < 0) || (it > 0xFFFF)) {
                 throw BlueLibValidationException.ValueOutOfRange(
                     parameter = "manufacturerId",
                     value = it.toLong(),
@@ -118,7 +118,7 @@ public data class ScanRequest(
         if (!Phy.isValidMask(phy.mask)) {
             throw BlueLibValidationException.InvalidPhyMask(phy.mask, Phy.ALL_MASK)
         }
-        if (reportDelayMillis !in 0..MAX_REPORT_DELAY_MILLIS) {
+        if ((reportDelayMillis < 0) || (reportDelayMillis > MAX_REPORT_DELAY_MILLIS)) {
             throw BlueLibValidationException.ValueOutOfRange(
                 parameter = "reportDelayMillis",
                 value = reportDelayMillis,
@@ -126,7 +126,7 @@ public data class ScanRequest(
             )
         }
         autoStopAfterMillis?.let {
-            if (it !in MIN_AUTO_STOP_MILLIS..MAX_AUTO_STOP_MILLIS) {
+            if ((it < MIN_AUTO_STOP_MILLIS) || (it > MAX_AUTO_STOP_MILLIS)) {
                 throw BlueLibValidationException.ValueOutOfRange(
                     parameter = "autoStopAfterMillis",
                     value = it,
@@ -134,7 +134,7 @@ public data class ScanRequest(
                 )
             }
         }
-        if (legacyOnly && phy != Phy.LE_1M) {
+        if (legacyOnly && (phy != Phy.LE_1M)) {
             throw BlueLibValidationException.IllegalState(
                 stateMachine = "ScanRequest",
                 from = "legacyOnly=true",
@@ -146,7 +146,7 @@ public data class ScanRequest(
 
     /** `true` when the request carries no filters and therefore matches every advertiser. */
     public val isUnfiltered: Boolean
-        get() = serviceUuids.isEmpty() && deviceName == null && namePrefix == null && manufacturerId == null
+        get() = serviceUuids.isEmpty() && (deviceName == null) && (namePrefix == null) && (manufacturerId == null)
 
     public companion object {
         /** Longest device name the legacy advertising payload can carry. */
@@ -193,7 +193,7 @@ public data class ScanObservation(
     val timestampMillis: Long = 0L,
 ) {
     init {
-        if (rssi !in MIN_RSSI..MAX_RSSI) {
+        if ((rssi < MIN_RSSI) || (rssi > MAX_RSSI)) {
             throw BlueLibValidationException.ValueOutOfRange(
                 parameter = "rssi",
                 value = rssi.toLong(),
@@ -211,32 +211,32 @@ public data class ScanObservation(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ScanObservation) return false
-        return deviceId == other.deviceId &&
-            rssi == other.rssi &&
-            txPower == other.txPower &&
-            deviceName == other.deviceName &&
-            serviceUuids == other.serviceUuids &&
-            isConnectable == other.isConnectable &&
-            primaryPhy == other.primaryPhy &&
-            secondaryPhy == other.secondaryPhy &&
-            advertisingSid == other.advertisingSid &&
-            timestampMillis == other.timestampMillis &&
+        return (deviceId == other.deviceId) &&
+            (rssi == other.rssi) &&
+            (txPower == other.txPower) &&
+            (deviceName == other.deviceName) &&
+            (serviceUuids == other.serviceUuids) &&
+            (isConnectable == other.isConnectable) &&
+            (primaryPhy == other.primaryPhy) &&
+            (secondaryPhy == other.secondaryPhy) &&
+            (advertisingSid == other.advertisingSid) &&
+            (timestampMillis == other.timestampMillis) &&
             advertisedData.contentEquals(other.advertisedData)
     }
 
     // ByteArray fields are compared by content in equals(), so the hash must follow the same rule.
     override fun hashCode(): Int {
         var result = deviceId.hashCode()
-        result = 31 * result + rssi
-        result = 31 * result + (txPower ?: 0)
-        result = 31 * result + (deviceName?.hashCode() ?: 0)
-        result = 31 * result + serviceUuids.hashCode()
-        result = 31 * result + isConnectable.hashCode()
-        result = 31 * result + primaryPhy.hashCode()
-        result = 31 * result + (secondaryPhy?.hashCode() ?: 0)
-        result = 31 * result + (advertisingSid ?: -1)
-        result = 31 * result + timestampMillis.hashCode()
-        result = 31 * result + advertisedData.contentHashCode()
+        result = (31 * result) + rssi
+        result = (31 * result) + (txPower ?: 0)
+        result = (31 * result) + (deviceName?.hashCode() ?: 0)
+        result = (31 * result) + serviceUuids.hashCode()
+        result = (31 * result) + isConnectable.hashCode()
+        result = (31 * result) + primaryPhy.hashCode()
+        result = (31 * result) + (secondaryPhy?.hashCode() ?: 0)
+        result = (31 * result) + (advertisingSid ?: -1)
+        result = (31 * result) + timestampMillis.hashCode()
+        result = (31 * result) + advertisedData.contentHashCode()
         return result
     }
 

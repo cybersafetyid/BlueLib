@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -70,7 +71,6 @@ import java.util.concurrent.ConcurrentHashMap
 public class AndroidGattSession internal constructor(
     override val deviceId: BluetoothDeviceId,
     private val request: GattConnectRequest,
-    private val context: android.content.Context,
     private val diagnostics: AndroidDiagnostics,
     private val clock: ClockPort,
     private val sessionScope: CoroutineScope,
@@ -450,14 +450,14 @@ public class AndroidGattSession internal constructor(
         val info = resolve(service, characteristic)
         val channelKey = key(service, characteristic)
 
-        if (info == null || !info.isSubscribable) {
+        if ((info == null) || !info.isSubscribable) {
             val error = if (info == null) {
                 serviceOrCharacteristicError(service, characteristic)
             } else {
                 BlueLibError.CharacteristicNotNotifiable(characteristic, info.properties)
             }
             diagnostics.error(error, deviceId)
-            return kotlinx.coroutines.flow.flow { throw io.github.cybersafetyid.bluelib.domain.error.BlueLibException(error) }
+            return flow { throw BlueLibException(error) }
         }
 
         val flow = notifications.getOrPut(channelKey) {

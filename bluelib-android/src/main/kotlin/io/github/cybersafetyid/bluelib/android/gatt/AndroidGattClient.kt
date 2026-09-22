@@ -63,7 +63,7 @@ public class AndroidGattClient(
     private val sessions = ConcurrentHashMap<String, AndroidGattSession>()
 
     override val openSessions: List<BluetoothDeviceId>
-        get() = sessions.values.filter { it.state.value != ConnectionState.CLOSED }.map { it.deviceId }
+        get() = sessions.values.asSequence().filter { it.state.value != ConnectionState.CLOSED }.map { it.deviceId }.toList()
 
     /** Sessions still usable, for diagnostics. */
     public val activeSessionCount: Int
@@ -93,7 +93,6 @@ public class AndroidGattClient(
         val session = AndroidGattSession(
             deviceId = deviceId,
             request = request,
-            context = context,
             diagnostics = diagnostics,
             clock = clock,
             sessionScope = sessionScope,
@@ -116,7 +115,7 @@ public class AndroidGattClient(
 
         val connected = try {
             withTimeout(request.timeoutMillis) { session.awaitConnected() }
-        } catch (timeout: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             failureOf(BlueLibError.Timeout("connectGatt", request.timeoutMillis, deviceId))
         }
 
@@ -148,13 +147,14 @@ public class AndroidGattClient(
     }
 
     /** Disconnects and forgets every session; called from `BlueLib.close()`. */
-    public suspend fun closeAll() {
+    public fun closeAll() {
         sessions.values.toList().forEach { session ->
             runCatching { session.close() }
         }
         sessions.clear()
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun openPlatformConnection(
         device: BluetoothDevice,
         request: GattConnectRequest,

@@ -71,7 +71,7 @@ public class DelimiterFramer(
         val result = mutableListOf<ByteArray>()
 
         var searchOffset = 0
-        while (searchOffset <= currentBytes.size - delimiter.size) {
+        while (searchOffset <= (currentBytes.size - delimiter.size)) {
             val matchIndex = indexOfDelimiter(currentBytes, searchOffset)
             searchOffset = if (matchIndex != -1) {
                 val messageBytes = currentBytes.copyOfRange(searchOffset, matchIndex)

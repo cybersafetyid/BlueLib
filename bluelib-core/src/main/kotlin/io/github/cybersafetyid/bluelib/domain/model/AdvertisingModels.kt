@@ -40,7 +40,7 @@ public data class AdvertiseData(
 ) {
     init {
         manufacturerData.keys.forEach { companyId ->
-            if (companyId !in 0..0xFFFF) {
+            if ((companyId !in 0..0xFFFF)) {
                 throw BlueLibValidationException.ValueOutOfRange(
                     parameter = "manufacturerData.companyId",
                     value = companyId.toLong(),

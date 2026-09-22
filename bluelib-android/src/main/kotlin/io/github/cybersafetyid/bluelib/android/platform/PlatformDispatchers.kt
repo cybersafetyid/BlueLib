@@ -3,7 +3,6 @@ package io.github.cybersafetyid.bluelib.android.platform
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -21,14 +20,12 @@ public class PlatformDispatchers(
 
     private val counter = AtomicInteger(1)
 
-    private val executor = Executors.newSingleThreadExecutor(
-        ThreadFactory { runnable ->
-            Thread(runnable, "$name-${counter.getAndIncrement()}").apply {
-                isDaemon = true
-                priority = Thread.NORM_PRIORITY
-            }
-        },
-    )
+    private val executor = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "$name-${counter.getAndIncrement()}").apply {
+            isDaemon = true
+            priority = Thread.NORM_PRIORITY
+        }
+    }
 
     /** Dispatcher for platform calls and their callbacks. */
     public val bluetooth: CoroutineDispatcher = executor.asCoroutineDispatcher()

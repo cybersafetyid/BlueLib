@@ -45,7 +45,7 @@ public data class BackoffPolicy(
         return when (jitter) {
             Jitter.NONE -> ceiling
             Jitter.FULL -> random.nextLong(0L, ceiling + 1L)
-            Jitter.EQUAL -> ceiling / 2 + random.nextLong(0L, ceiling / 2 + 1L)
+            Jitter.EQUAL -> (ceiling / 2) + random.nextLong(0L, (ceiling / 2) + 1L)
         }
     }
 }
@@ -124,7 +124,7 @@ public data class ReconnectPolicy(
         systemRepairInProgress -> Decision.AwaitSystemRepair(
             "Android 17 is re-pairing the device automatically; reconnect once it finishes",
         )
-        bondLossReason != null && !reconnectOnBondLoss -> Decision.Stop(
+        (bondLossReason != null) && (!reconnectOnBondLoss) -> Decision.Stop(
             "bond was lost ($bondLossReason); re-pairing requires user consent",
         )
         attempt >= maxAttempts -> Decision.Stop("reached the $maxAttempts reconnect attempt limit")

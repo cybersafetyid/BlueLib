@@ -21,14 +21,14 @@ public class PlatformCapabilities(
 ) {
 
     /** Capability of [feature] on this device. */
-    @SuppressLint("InlinedApi")
+    @SuppressLint("InlinedApi", "NewApi")
     public fun capabilityOf(feature: BluetoothFeature): Boolean = when (feature) {
         BluetoothFeature.BLUETOOTH_CLASSIC -> hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
         BluetoothFeature.LOW_ENERGY -> hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
-        BluetoothFeature.LE_PERIPHERAL_ROLE -> query { adapter?.isMultipleAdvertisementSupported } == true
-        BluetoothFeature.MULTIPLE_ADVERTISEMENT -> query { adapter?.isMultipleAdvertisementSupported } == true
-        BluetoothFeature.OFFLOADED_FILTERING -> query { adapter?.isOffloadedFilteringSupported } == true
-        BluetoothFeature.OFFLOADED_BATCHING -> query { adapter?.isOffloadedScanBatchingSupported } == true
+        BluetoothFeature.LE_PERIPHERAL_ROLE -> query { adapter?.isMultipleAdvertisementSupported }
+        BluetoothFeature.MULTIPLE_ADVERTISEMENT -> query { adapter?.isMultipleAdvertisementSupported }
+        BluetoothFeature.OFFLOADED_FILTERING -> query { adapter?.isOffloadedFilteringSupported }
+        BluetoothFeature.OFFLOADED_BATCHING -> query { adapter?.isOffloadedScanBatchingSupported }
 
         BluetoothFeature.LE_EXTENDED_ADVERTISING -> api26 { isLeExtendedAdvertisingSupported }
         BluetoothFeature.LE_2M_PHY -> api26 { isLe2MPhySupported }
@@ -71,7 +71,7 @@ public class PlatformCapabilities(
         packageManager?.hasSystemFeature(name) ?: false
 
     private inline fun query(block: () -> Boolean?): Boolean =
-        runCatching { block() }.getOrDefault(false) == true
+        runCatching { block() }.getOrDefault(defaultValue = false) == true
 
     // The API level checks live *inside* these helpers, which Android Lint cannot follow through an
     // inline lambda, so the `NewApi` check is suppressed here and the guard remains the real gate.

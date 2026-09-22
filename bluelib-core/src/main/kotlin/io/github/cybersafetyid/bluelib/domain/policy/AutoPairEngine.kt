@@ -45,7 +45,7 @@ public object AutoPairEngine {
                     )
                 } else {
                     BlueLibError.Unexpected("AutoPairFilter validation failed", error)
-                }
+                },
             )
         }
 

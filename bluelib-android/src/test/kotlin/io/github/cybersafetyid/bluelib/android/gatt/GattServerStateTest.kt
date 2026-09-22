@@ -64,7 +64,7 @@ class GattServerStateTest {
     )
 
     @Test
-    fun `seed exposes the declared initial values`() {
+    public fun `seed exposes the declared initial values`() {
         val target = state()
         target.seed()
 

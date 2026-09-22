@@ -32,7 +32,7 @@ public object GattProperty {
 
     /** `true` when the characteristic accepts writes (with or without response). */
     public fun isWritable(properties: Int): Boolean =
-        (properties and WRITE) != 0 || (properties and WRITE_NO_RESPONSE) != 0
+        ((properties and WRITE) != 0) || ((properties and WRITE_NO_RESPONSE) != 0)
 }
 
 /** Permission bits a local GATT server can require, mirroring `BluetoothGattCharacteristic.PERMISSION_*`. */
@@ -115,7 +115,7 @@ public data class GattServiceInfo(
 ) {
     /** Looks up a characteristic by UUID, optionally restricted to an instance id. */
     public fun characteristic(uuid: BluetoothUuid, instanceId: Int? = null): GattCharacteristicInfo? =
-        characteristics.firstOrNull { it.uuid == uuid && (instanceId == null || it.instanceId == instanceId) }
+        characteristics.firstOrNull { ((it.uuid == uuid) && ((instanceId == null) || (it.instanceId == instanceId))) }
 }
 
 /** Snapshot of everything discovered on a peripheral. */
@@ -159,6 +159,25 @@ public data class CharacteristicDefinition(
     /** Convenience: `true` when this characteristic can notify centrals. */
     public val isNotifiable: Boolean
         get() = GattProperty.isNotifiable(properties)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CharacteristicDefinition) return false
+        if (uuid != other.uuid) return false
+        if (properties != other.properties) return false
+        if (permissions != other.permissions) return false
+        if (!value.contentEquals(other.value)) return false
+        return descriptors == other.descriptors
+    }
+
+    override fun hashCode(): Int {
+        var result = uuid.hashCode()
+        result = (31 * result) + properties
+        result = (31 * result) + permissions
+        result = (31 * result) + value.contentHashCode()
+        result = (31 * result) + descriptors.hashCode()
+        return result
+    }
 }
 
 /** Definition of a descriptor a local GATT server exposes. */
@@ -166,7 +185,22 @@ public data class DescriptorDefinition(
     val uuid: BluetoothUuid,
     val permissions: Int,
     val value: ByteArray = ByteArray(0),
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DescriptorDefinition) return false
+        if (uuid != other.uuid) return false
+        if (permissions != other.permissions) return false
+        return value.contentEquals(other.value)
+    }
+
+    override fun hashCode(): Int {
+        var result = uuid.hashCode()
+        result = (31 * result) + permissions
+        result = (31 * result) + value.contentHashCode()
+        return result
+    }
+}
 
 /** Definition of a service a local GATT server exposes. */
 public data class ServiceDefinition(
@@ -219,7 +253,7 @@ public data class GattServerConnection(
  * Android the server stops answering further requests from that device in the meantime. Applications
  * therefore answer through
  * [io.github.cybersafetyid.bluelib.port.GattServer.sendResponse], or ignore the request explicitly
- * using [GattServerRequest.Rejected].
+ * using [io.github.cybersafetyid.bluelib.domain.error.GattStatus].
  */
 public sealed interface GattServerRequest {
     /** The central that sent the request. */
@@ -259,7 +293,32 @@ public sealed interface GattServerRequest {
         public val responseNeeded: Boolean,
         /** `true` when this is one chunk of a prepare/execute long write. */
         public val preparedWrite: Boolean,
-    ) : GattServerRequest
+    ) : GattServerRequest {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is WriteCharacteristic) return false
+            if (deviceId != other.deviceId) return false
+            if (requestId != other.requestId) return false
+            if (offset != other.offset) return false
+            if (service != other.service) return false
+            if (characteristic != other.characteristic) return false
+            if (!value.contentEquals(other.value)) return false
+            if (responseNeeded != other.responseNeeded) return false
+            return preparedWrite == other.preparedWrite
+        }
+
+        override fun hashCode(): Int {
+            var result = deviceId.hashCode()
+            result = (31 * result) + requestId
+            result = (31 * result) + offset
+            result = (31 * result) + service.hashCode()
+            result = (31 * result) + characteristic.hashCode()
+            result = (31 * result) + value.contentHashCode()
+            result = (31 * result) + responseNeeded.hashCode()
+            result = (31 * result) + preparedWrite.hashCode()
+            return result
+        }
+    }
 
     /** A central read a descriptor. */
     public data class ReadDescriptor(
@@ -282,7 +341,34 @@ public sealed interface GattServerRequest {
         public val value: ByteArray,
         public val responseNeeded: Boolean,
         public val preparedWrite: Boolean,
-    ) : GattServerRequest
+    ) : GattServerRequest {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is WriteDescriptor) return false
+            if (deviceId != other.deviceId) return false
+            if (requestId != other.requestId) return false
+            if (offset != other.offset) return false
+            if (service != other.service) return false
+            if (characteristic != other.characteristic) return false
+            if (descriptor != other.descriptor) return false
+            if (!value.contentEquals(other.value)) return false
+            if (responseNeeded != other.responseNeeded) return false
+            return preparedWrite == other.preparedWrite
+        }
+
+        override fun hashCode(): Int {
+            var result = deviceId.hashCode()
+            result = (31 * result) + requestId
+            result = (31 * result) + offset
+            result = (31 * result) + service.hashCode()
+            result = (31 * result) + characteristic.hashCode()
+            result = (31 * result) + descriptor.hashCode()
+            result = (31 * result) + value.contentHashCode()
+            result = (31 * result) + responseNeeded.hashCode()
+            result = (31 * result) + preparedWrite.hashCode()
+            return result
+        }
+    }
 
     /** A central executed (or cancelled) the writes it prepared. */
     public data class ExecuteWrite(

@@ -63,7 +63,7 @@ public object DataCodec {
         val compact = hex.replace("0x", "", ignoreCase = true)
             .filter { (!it.isWhitespace()) && (it != ':') && (it != '-') && (it != ',') }
 
-        if (compact.length % 2 != 0) {
+        if ((compact.length % 2) != 0) {
             throw BlueLibValidationException.InvalidPayload(
                 operation = "encodeHex",
                 sizeBytes = compact.length,
@@ -73,7 +73,7 @@ public object DataCodec {
         }
 
         return ByteArray(compact.length / 2) { index ->
-            val byteStr = compact.substring(index * 2, index * 2 + 2)
+            val byteStr = compact.substring((index * 2), (index * 2) + 2)
             val parsed = byteStr.toIntOrNull(16)
                 ?: throw BlueLibValidationException.InvalidPayload(
                     operation = "encodeHex",
@@ -207,14 +207,12 @@ public object DataCodec {
     }
 
     private fun validateAscii(text: String) {
-        val nonAscii = text.firstOrNull { it.code > 127 }
-        if (nonAscii != null) {
-            throw BlueLibValidationException.InvalidPayload(
-                operation = "encodeText(ASCII)",
-                sizeBytes = text.length,
-                allowed = 0..Int.MAX_VALUE,
-                hint = "Non-ASCII character '$nonAscii' (code ${nonAscii.code}) in string '$text'.",
-            )
-        }
+        val nonAscii = text.firstOrNull { it.code > 127 } ?: return
+        throw BlueLibValidationException.InvalidPayload(
+            operation = "encodeText(ASCII)",
+            sizeBytes = text.length,
+            allowed = 0..Int.MAX_VALUE,
+            hint = "Non-ASCII character '$nonAscii' (code ${nonAscii.code}) in string '$text'.",
+        )
     }
 }

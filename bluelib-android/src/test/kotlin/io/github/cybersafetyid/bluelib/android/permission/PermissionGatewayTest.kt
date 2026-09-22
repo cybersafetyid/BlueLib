@@ -24,20 +24,20 @@ class PermissionGatewayTest {
 
     private fun gateway(vararg statuses: Pair<String, PermissionStatus>) = PermissionGateway(
         port = FakePermissions(statuses.toMap()),
-        requiredFor = { operation ->
-            when (operation) {
-                BluetoothOperation.SCAN -> listOf("android.permission.BLUETOOTH_SCAN")
-                BluetoothOperation.CONNECT -> listOf(
-                    "android.permission.BLUETOOTH_CONNECT",
-                    "android.permission.BLUETOOTH_SCAN",
-                )
-                else -> listOf("android.permission.${operation.name}")
-            }
-        },
-    )
+    ) { operation ->
+        when (operation) {
+            BluetoothOperation.SCAN -> listOf("android.permission.BLUETOOTH_SCAN")
+            BluetoothOperation.CONNECT -> listOf(
+                "android.permission.BLUETOOTH_CONNECT",
+                "android.permission.BLUETOOTH_SCAN",
+            )
+
+            else -> listOf("android.permission.${operation.name}")
+        }
+    }
 
     @Test
-    fun `a granted permission satisfies the operation`() {
+    public fun `a granted permission satisfies the operation`() {
         val target = gateway("android.permission.BLUETOOTH_SCAN" to PermissionStatus.GRANTED)
 
         assertTrue(target.hasPermissionFor(BluetoothOperation.SCAN))

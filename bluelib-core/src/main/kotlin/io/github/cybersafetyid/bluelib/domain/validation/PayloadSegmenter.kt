@@ -57,7 +57,7 @@ public object PayloadSegmenter {
                         operation = "writeCharacteristic(${value.size} bytes, $writeMode)",
                         sizeBytes = value.size,
                         allowed = 0..singleWriteLimit,
-                        hint = "Use WriteMode.LONG to split the value across ${(value.size + singleWriteLimit - 1) / singleWriteLimit} chunks.",
+                        hint = "Use WriteMode.LONG to split the value across ${((value.size + singleWriteLimit - 1) / singleWriteLimit)} chunks.",
                     )
                 }
             }
@@ -90,7 +90,7 @@ public object PayloadSegmenter {
         }
         validateWrite(value, writeMode, mtu)
         val chunkSize = maxChunkSize(mtu)
-        return value.asList().chunked(chunkSize).map { it.toByteArray() }
+        return value.asList().asSequence().chunked(chunkSize).map { it.toByteArray() }.toList()
     }
 
     /**

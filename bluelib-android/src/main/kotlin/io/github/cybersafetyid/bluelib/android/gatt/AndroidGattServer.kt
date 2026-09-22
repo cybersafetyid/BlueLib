@@ -1,5 +1,6 @@
 package io.github.cybersafetyid.bluelib.android.gatt
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
@@ -7,8 +8,9 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattServerCallback
 import android.bluetooth.BluetoothGattService
-import android.annotation.SuppressLint
+import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.content.Context
 import android.os.Build
 import io.github.cybersafetyid.bluelib.android.compat.ApiLevel
 import io.github.cybersafetyid.bluelib.android.diagnostics.AndroidDiagnostics
@@ -18,7 +20,6 @@ import io.github.cybersafetyid.bluelib.domain.error.failureOf
 import io.github.cybersafetyid.bluelib.domain.error.successOf
 import io.github.cybersafetyid.bluelib.domain.model.BluetoothDeviceId
 import io.github.cybersafetyid.bluelib.domain.model.BluetoothUuid
-import io.github.cybersafetyid.bluelib.domain.model.CharacteristicDefinition
 import io.github.cybersafetyid.bluelib.domain.model.GattProperty
 import io.github.cybersafetyid.bluelib.domain.model.GattServerConfig
 import io.github.cybersafetyid.bluelib.domain.model.GattServerConnection
@@ -192,7 +193,7 @@ public class AndroidGattServer internal constructor(
 
         PayloadSegmenter.requireValidMtu(PayloadSegmenter.DEFAULT_MTU)
         val sent = runCatching { platformServer.sendResponse(device, requestId, status, offset, value) }
-            .getOrDefault(false)
+            .getOrDefault(defaultValue = false)
 
         return if (sent) {
             successOf(Unit)
@@ -555,8 +556,8 @@ public class AndroidGattServerHost(
         }
 
         // The string based lookup keeps Android 5.0 working (`getSystemService(Class)` is API 23).
-        val manager = context.getSystemService(android.content.Context.BLUETOOTH_SERVICE)
-            as? android.bluetooth.BluetoothManager
+        val manager = (context.getSystemService(Context.BLUETOOTH_SERVICE)
+            as? BluetoothManager)
             ?: return failureOf(BlueLibError.AdapterUnavailable())
 
         val server = AndroidGattServer(config, diagnostics)
