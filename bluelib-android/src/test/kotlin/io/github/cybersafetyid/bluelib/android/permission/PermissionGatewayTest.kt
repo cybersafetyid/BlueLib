@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
  * * a permission the app never declared is a manifest bug, and telling the user to "enable Bluetooth
  *   permission" only wastes their time.
  */
-class PermissionGatewayTest {
+public class PermissionGatewayTest {
 
     private class FakePermissions(private val statuses: Map<String, PermissionStatus>) : PermissionPort {
         override fun statusOf(permission: String): PermissionStatus =
@@ -45,7 +45,7 @@ class PermissionGatewayTest {
     }
 
     @Test
-    fun `a denied permission produces a retryable permission error naming the operation`() {
+    public fun `a denied permission produces a retryable permission error naming the operation`() {
         val target = gateway("android.permission.BLUETOOTH_SCAN" to PermissionStatus.DENIED)
 
         val report = target.report(BluetoothOperation.SCAN)
@@ -61,7 +61,7 @@ class PermissionGatewayTest {
     }
 
     @Test
-    fun `a permanently denied permission is flagged so a UI can send the user to settings`() {
+    public fun `a permanently denied permission is flagged so a UI can send the user to settings`() {
         val target = gateway("android.permission.BLUETOOTH_SCAN" to PermissionStatus.DENIED_PERMANENTLY)
 
         val typed = target.requireOrFailure(BluetoothOperation.SCAN).errorOrNull() as BlueLibError.PermissionMissing
@@ -70,7 +70,7 @@ class PermissionGatewayTest {
     }
 
     @Test
-    fun `a permission the app never declared is reported as a manifest problem`() {
+    public fun `a permission the app never declared is reported as a manifest problem`() {
         // NOT_APPLICABLE means the manifest does not request it at all.
         val target = gateway("android.permission.BLUETOOTH_SCAN" to PermissionStatus.NOT_APPLICABLE)
 
@@ -81,7 +81,7 @@ class PermissionGatewayTest {
     }
 
     @Test
-    fun `a missing permission is reported even when another one is undeclared`() {
+    public fun `a missing permission is reported even when another one is undeclared`() {
         val target = gateway(
             "android.permission.BLUETOOTH_CONNECT" to PermissionStatus.DENIED,
             "android.permission.BLUETOOTH_SCAN" to PermissionStatus.NOT_APPLICABLE,
@@ -94,7 +94,7 @@ class PermissionGatewayTest {
     }
 
     @Test
-    fun `every missing permission ends up in the report`() {
+    public fun `every missing permission ends up in the report`() {
         val target = gateway(
             "android.permission.BLUETOOTH_CONNECT" to PermissionStatus.DENIED,
             "android.permission.BLUETOOTH_SCAN" to PermissionStatus.DENIED_PERMANENTLY,

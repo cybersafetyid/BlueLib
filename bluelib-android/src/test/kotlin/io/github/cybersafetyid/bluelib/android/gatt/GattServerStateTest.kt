@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test
  * reads past the end of a value, writes to a read-only characteristic, a long write that is cancelled
  * halfway, and a subscription that arrives from a device that disconnects.
  */
-class GattServerStateTest {
+public class GattServerStateTest {
 
     private val service = BluetoothUuid.fromShort(0x180D)
     private val notifyCharacteristic = BluetoothUuid.fromShort(0x2A37)
@@ -77,7 +77,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `a read returns the value from the requested offset`() {
+    public fun `a read returns the value from the requested offset`() {
         val target = state()
         target.seed()
 
@@ -91,7 +91,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `an offset past the end of the value is invalid, and an unknown attribute is not found`() {
+    public fun `an offset past the end of the value is invalid, and an unknown attribute is not found`() {
         val target = state()
         target.seed()
 
@@ -105,7 +105,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `writing a read-only characteristic is refused and leaves the value untouched`() {
+    public fun `writing a read-only characteristic is refused and leaves the value untouched`() {
         val target = state()
         target.seed()
 
@@ -116,7 +116,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `a single write replaces the whole value`() {
+    public fun `a single write replaces the whole value`() {
         val target = state()
         target.seed()
 
@@ -127,7 +127,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `a prepared write is invisible until it is executed`() {
+    public fun `a prepared write is invisible until it is executed`() {
         val target = state()
         target.seed()
         val chunk = byteArrayOf(0x0A, 0x0B)
@@ -147,7 +147,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `a cancelled long write is discarded`() {
+    public fun `a cancelled long write is discarded`() {
         val target = state()
         target.seed()
 
@@ -158,7 +158,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `long write chunks are assembled at their offsets`() {
+    public fun `long write chunks are assembled at their offsets`() {
         val target = state()
         target.seed()
 
@@ -172,7 +172,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `an offset write on a normal write merges into the stored value`() {
+    public fun `an offset write on a normal write merges into the stored value`() {
         val target = state()
         target.seed()
         target.write(service, writeOnlyCharacteristic, offset = 0, payload = byteArrayOf(0x01, 0x02, 0x03))
@@ -183,7 +183,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `the client characteristic configuration reflects the subscription state`() {
+    public fun `the client characteristic configuration reflects the subscription state`() {
         val target = state()
         target.seed()
 
@@ -214,7 +214,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `a characteristic that cannot notify is never reported as subscribed`() {
+    public fun `a characteristic that cannot notify is never reported as subscribed`() {
         val target = state()
         target.seed()
 
@@ -232,7 +232,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `disconnecting forgets subscriptions and prepared writes`() {
+    public fun `disconnecting forgets subscriptions and prepared writes`() {
         val target = state()
         target.seed()
         target.writeClientCharacteristicConfiguration(device, service, notifyCharacteristic, byteArrayOf(0x01, 0x00))
@@ -246,7 +246,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `another device keeps its own subscription state`() {
+    public fun `another device keeps its own subscription state`() {
         val target = state()
         target.seed()
         val second = BluetoothDeviceId.of("11:22:33:44:55:66")
@@ -259,7 +259,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `a notified value becomes the value a later read returns`() {
+    public fun `a notified value becomes the value a later read returns`() {
         val target = state()
         target.seed()
 
@@ -270,7 +270,7 @@ class GattServerStateTest {
     }
 
     @Test
-    fun `clearing drops every value`() {
+    public fun `clearing drops every value`() {
         val target = state()
         target.seed()
         target.clear()

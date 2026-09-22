@@ -31,6 +31,7 @@ import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Owns the set of live GATT connections and the connect procedure.
@@ -114,7 +115,7 @@ public class AndroidGattClient(
         session.attach(platformGatt)
 
         val connected = try {
-            withTimeout(request.timeoutMillis) { session.awaitConnected() }
+            withTimeout(request.timeoutMillis.milliseconds) { session.awaitConnected() }
         } catch (_: TimeoutCancellationException) {
             failureOf(BlueLibError.Timeout("connectGatt", request.timeoutMillis, deviceId))
         }

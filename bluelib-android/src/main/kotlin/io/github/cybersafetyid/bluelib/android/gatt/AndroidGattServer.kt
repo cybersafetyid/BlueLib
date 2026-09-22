@@ -488,7 +488,7 @@ public class AndroidGattServer internal constructor(
         val platformServer = server ?: return
         val device = devices[deviceId.address.value] ?: return
         val sent = runCatching { platformServer.sendResponse(device, requestId, status, offset, value) }
-            .getOrDefault(false)
+            .getOrDefault(defaultValue = false)
         if (!sent) {
             diagnostics.error(
                 BlueLibError.OperationRejected("sendResponse was rejected for request $requestId"),
@@ -519,7 +519,7 @@ public class AndroidGattServer internal constructor(
 // that runtime gate statically.
 @SuppressLint("MissingPermission")
 public class AndroidGattServerHost(
-    private val context: android.content.Context,
+    private val context: Context,
     private val adapterSource: io.github.cybersafetyid.bluelib.android.adapter.AndroidAdapterSource,
     private val permissionGateway: io.github.cybersafetyid.bluelib.android.permission.PermissionGateway,
     private val diagnostics: AndroidDiagnostics,
