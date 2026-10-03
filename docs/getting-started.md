@@ -4,10 +4,10 @@
 
 ```kotlin
 dependencies {
-    implementation("io.github.cybersafetyid:bluelib:0.1.2")
+    implementation("io.github.cybersafetyid:bluelib:0.2.0")
 
     // Optional: fakes for every port, for unit tests without a device.
-    testImplementation("io.github.cybersafetyid:bluelib-testing:0.1.2")
+    testImplementation("io.github.cybersafetyid:bluelib-testing:0.2.0")
 }
 ```
 

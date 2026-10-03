@@ -94,14 +94,14 @@ central, the other as the peripheral running the sample's GATT server.
 
 ## Installation
 
-Current Release Version: `0.1.2`
+Current Release Version: `0.2.0`
 
 ### Kotlin DSL (`build.gradle.kts`)
 
 ```kotlin
 dependencies {
-    implementation("io.github.cybersafetyid:bluelib:0.1.2")
-    testImplementation("io.github.cybersafetyid:bluelib-testing:0.1.2")
+    implementation("io.github.cybersafetyid:bluelib:0.2.0")
+    testImplementation("io.github.cybersafetyid:bluelib-testing:0.2.0")
 }
 ```
 
@@ -109,8 +109,8 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.cybersafetyid:bluelib:0.1.2'
-    testImplementation 'io.github.cybersafetyid:bluelib-testing:0.1.2'
+    implementation 'io.github.cybersafetyid:bluelib:0.2.0'
+    testImplementation 'io.github.cybersafetyid:bluelib-testing:0.2.0'
 }
 ```
 
@@ -118,7 +118,7 @@ dependencies {
 
 ```toml
 [versions]
-bluelib = "0.1.2"
+bluelib = "0.2.0"
 
 [libraries]
 bluelib = { module = "io.github.cybersafetyid:bluelib", version.ref = "bluelib" }
