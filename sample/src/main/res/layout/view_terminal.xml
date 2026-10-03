@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Messenger console shared by every link: GATT, Classic socket, TCP, USB serial, UART. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Sample.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Sample.CardTitle"
+            app:drawableStartCompat="@drawable/ic_terminal"
+            android:text="@string/terminal_title" />
+
+        <TextView
+            android:id="@+id/terminalEndpoint"
+            style="@style/Sample.Caption"
+            android:text="@string/terminal_idle" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/terminalFormat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:checkedButton="@+id/formatText"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <Button
+                android:id="@+id/formatText"
+                style="@style/Sample.Button.Outlined"
+                android:text="@string/format_text" />
+
+            <Button
+                android:id="@+id/formatHex"
+                style="@style/Sample.Button.Outlined"
+                android:text="@string/format_hex" />
+
+            <Button
+                android:id="@+id/formatBase64"
+                style="@style/Sample.Button.Outlined"
+                android:text="@string/format_base64" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <TextView
+            android:id="@+id/terminalOutput"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_console"
+            android:gravity="bottom"
+            android:padding="12dp"
+            android:scrollbars="vertical"
+            android:fontFamily="monospace"
+            android:textAppearance="@style/TextAppearance.Sample.Mono" />
+
+        <LinearLayout style="@style/Sample.Row">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/hint_message">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/terminalInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionSend"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/terminalSend"
+                style="@style/Widget.Material3.Button.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:enabled="false"
+                android:text="@string/btn_send"
+                app:icon="@drawable/ic_send" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Sample.Row">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/terminalNewline"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:text="@string/terminal_newline" />
+
+            <Button
+                android:id="@+id/terminalClose"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:text="@string/btn_close_link" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

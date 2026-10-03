@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false">
+
+    <!-- Focusable container: keeps the first text field from grabbing focus and scrolling the page. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Discovery -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_bluetooth_search"
+                    android:text="@string/scan_title" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:text="@string/scan_caption" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/scanSource"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:checkedButton="@+id/sourceBle"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <Button
+                        android:id="@+id/sourceBle"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/source_ble" />
+
+                    <Button
+                        android:id="@+id/sourceClassic"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/source_classic" />
+
+                    <Button
+                        android:id="@+id/sourceBonded"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/source_bonded" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <LinearLayout
+                    android:id="@+id/bleOptions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Sample.Input"
+                        android:hint="@string/hint_name_prefix">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/scanNamePrefix"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/scanMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:checkedChip="@+id/modeLatency"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/modeLowPower"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/mode_low_power" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/modeBalanced"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/mode_balanced" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/modeLatency"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/mode_low_latency" />
+                    </com.google.android.material.chip.ChipGroup>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnScan"
+                    style="@style/Widget.Material3.Button.Icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/btn_start_scan"
+                    app:icon="@drawable/ic_bluetooth_search" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Auto pair -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/apHeader"
+                    style="@style/Sample.CardTitle"
+                    android:background="?attr/selectableItemBackground"
+                    app:drawableStartCompat="@drawable/ic_magic"
+                    app:drawableEndCompat="@drawable/ic_expand"
+                    android:text="@string/autopair_title" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:text="@string/autopair_caption" />
+
+                <LinearLayout
+                    android:id="@+id/apBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_device_name">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/apName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_name_prefix_short">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/apPrefix"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_mac">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/apMac"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapCharacters" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_manufacturer">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/apManufacturer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Sample.Input"
+                    android:hint="@string/hint_service_uuid">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/apService"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/apUseRssi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true" />
+
+                    <TextView
+                        android:id="@+id/apRssiLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+                </LinearLayout>
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/apRssi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/autopair_rssi_description"
+                    android:stepSize="1"
+                    android:value="-70"
+                    android:valueFrom="-100"
+                    android:valueTo="-30" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/apTransport"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:checkedButton="@+id/transportAuto"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <Button
+                        android:id="@+id/transportAuto"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/transport_auto" />
+
+                    <Button
+                        android:id="@+id/transportLe"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/transport_le" />
+
+                    <Button
+                        android:id="@+id/transportBredr"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/transport_bredr" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <Button
+                    android:id="@+id/btnAutoPair"
+                    style="@style/Widget.Material3.Button.Icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/btn_auto_pair"
+                    app:icon="@drawable/ic_magic" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/apResult"
+                    style="@style/Sample.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Results -->
+        <TextView
+            android:id="@+id/deviceCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="4dp"
+            android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+        <LinearLayout
+            android:id="@+id/deviceList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/deviceEmpty"
+            style="@style/Sample.Caption"
+            android:gravity="center"
+            android:padding="24dp"
+            android:text="@string/devices_empty" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

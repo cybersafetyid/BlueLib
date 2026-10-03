@@ -21,7 +21,7 @@ class MessageFramerTest {
 
     @Test
     fun `DelimiterFramer appends delimiter and reconstructs fragmented chunks`() {
-        val framer = DelimiterFramer.LINE_FEED
+        val framer = DelimiterFramer.lineFeed()
         val msg1 = "Hello".toByteArray(Charsets.UTF_8)
         val msg2 = "World".toByteArray(Charsets.UTF_8)
 
@@ -77,5 +77,19 @@ class MessageFramerTest {
         assertFailsWith<BlueLibValidationException.InvalidPayload> {
             LengthPrefixedFramer(headerBytes = 3)
         }
+    }
+
+    @Test
+    fun `DelimiterFramer factory returns framers that do not share buffers`() {
+        val first = DelimiterFramer.lineFeed()
+        val second = DelimiterFramer.lineFeed()
+
+        assertTrue(first.parseIncoming("abc".toByteArray(Charsets.UTF_8)).isEmpty())
+        val fromSecond = second.parseIncoming("xyz\n".toByteArray(Charsets.UTF_8))
+        assertEquals(listOf("xyz"), fromSecond.map { it.toString(Charsets.UTF_8) })
+
+        second.reset()
+        val fromFirst = first.parseIncoming("def\n".toByteArray(Charsets.UTF_8))
+        assertEquals(listOf("abcdef"), fromFirst.map { it.toString(Charsets.UTF_8) })
     }
 }

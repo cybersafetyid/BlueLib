@@ -107,14 +107,29 @@ public class DelimiterFramer(
     }
 
     public companion object {
-        /** Line Feed (`\n`) delimiter. */
-        public val LINE_FEED: DelimiterFramer = DelimiterFramer(byteArrayOf(0x0A))
+        // Framers hold a parse buffer, so every call returns a new instance. Never share one framer
+        // between messengers: their partial messages mix and close() of one wipes the other.
 
-        /** Carriage Return + Line Feed (`\r\n`) delimiter. */
-        public val CRLF: DelimiterFramer = DelimiterFramer(byteArrayOf(0x0D, 0x0A))
+        /** New framer with a Line Feed (`\n`) delimiter. */
+        public fun lineFeed(): DelimiterFramer = DelimiterFramer(byteArrayOf(0x0A))
 
-        /** Null byte (`0x00`) delimiter. */
-        public val NULL_BYTE: DelimiterFramer = DelimiterFramer(byteArrayOf(0x00))
+        /** New framer with a Carriage Return + Line Feed (`\r\n`) delimiter. */
+        public fun crlf(): DelimiterFramer = DelimiterFramer(byteArrayOf(0x0D, 0x0A))
+
+        /** New framer with a null byte (`0x00`) delimiter. */
+        public fun nullByte(): DelimiterFramer = DelimiterFramer(byteArrayOf(0x00))
+
+        /** Returns a new framer on each access. */
+        @Deprecated("Use lineFeed(); a framer must not be shared.", ReplaceWith("DelimiterFramer.lineFeed()"))
+        public val LINE_FEED: DelimiterFramer get() = lineFeed()
+
+        /** Returns a new framer on each access. */
+        @Deprecated("Use crlf(); a framer must not be shared.", ReplaceWith("DelimiterFramer.crlf()"))
+        public val CRLF: DelimiterFramer get() = crlf()
+
+        /** Returns a new framer on each access. */
+        @Deprecated("Use nullByte(); a framer must not be shared.", ReplaceWith("DelimiterFramer.nullByte()"))
+        public val NULL_BYTE: DelimiterFramer get() = nullByte()
     }
 }
 

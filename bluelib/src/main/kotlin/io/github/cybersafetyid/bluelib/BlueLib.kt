@@ -16,14 +16,16 @@ import io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation
 import io.github.cybersafetyid.bluelib.android.permission.PermissionGateway
 import io.github.cybersafetyid.bluelib.android.permission.PermissionReport
 import io.github.cybersafetyid.bluelib.android.platform.PlatformDispatchers
+import io.github.cybersafetyid.bluelib.android.usb.AndroidUsbPort
+import io.github.cybersafetyid.bluelib.android.usb.UsbDeviceInfo
 import io.github.cybersafetyid.bluelib.domain.BluetoothFeature
 import io.github.cybersafetyid.bluelib.domain.Capability
 import io.github.cybersafetyid.bluelib.domain.codec.MessageFramer
 import io.github.cybersafetyid.bluelib.domain.codec.RawFramer
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibResult
 import io.github.cybersafetyid.bluelib.domain.messenger.BluetoothMessenger
-import io.github.cybersafetyid.bluelib.domain.messenger.ClassicMessenger
 import io.github.cybersafetyid.bluelib.domain.messenger.GattMessenger
+import io.github.cybersafetyid.bluelib.domain.messenger.StreamMessenger
 import io.github.cybersafetyid.bluelib.domain.model.AdvertisingHandle
 import io.github.cybersafetyid.bluelib.domain.model.AdvertisingRequest
 import io.github.cybersafetyid.bluelib.domain.model.AutoPairFilter
@@ -31,10 +33,12 @@ import io.github.cybersafetyid.bluelib.domain.model.BluetoothDeviceId
 import io.github.cybersafetyid.bluelib.domain.model.BluetoothUuid
 import io.github.cybersafetyid.bluelib.domain.model.GattServerConfig
 import io.github.cybersafetyid.bluelib.domain.model.ScanRequest
+import io.github.cybersafetyid.bluelib.domain.model.SerialSettings
 import io.github.cybersafetyid.bluelib.domain.model.Transport
 import io.github.cybersafetyid.bluelib.domain.model.WriteMode
 import io.github.cybersafetyid.bluelib.domain.policy.AutoPairEngine
 import io.github.cybersafetyid.bluelib.domain.policy.ScanQuotaGovernor
+import io.github.cybersafetyid.bluelib.port.ByteConnection
 import io.github.cybersafetyid.bluelib.port.ClassicConnection
 import io.github.cybersafetyid.bluelib.port.ClassicDevice
 import io.github.cybersafetyid.bluelib.port.ClassicDiscoveryEvent
@@ -46,6 +50,10 @@ import io.github.cybersafetyid.bluelib.port.GattSession
 import io.github.cybersafetyid.bluelib.port.ScanEvent
 import io.github.cybersafetyid.bluelib.port.SocketSettings
 import io.github.cybersafetyid.bluelib.port.SystemClockPort
+import io.github.cybersafetyid.bluelib.transport.TcpSettings
+import io.github.cybersafetyid.bluelib.transport.TcpTransport
+import io.github.cybersafetyid.bluelib.transport.UartTransport
+import io.github.cybersafetyid.bluelib.transport.UsbSerialDriver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -55,7 +63,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
 
 /**
- * The one object an application needs.
+ * The one object an application needs, for Bluetooth as well as TCP/IP, USB serial and UART links.
  *
  * `BlueLib` wires the domain layer to the Android platform adapters and exposes a stable surface:
  *
@@ -88,6 +96,7 @@ public class BlueLib private constructor(
     private val gattClient: AndroidGattClient,
     private val gattServerHost: AndroidGattServerHost,
     private val classic: AndroidClassicPort,
+    private val usb: AndroidUsbPort,
     private val platformDispatchers: PlatformDispatchers,
     private val scope: CoroutineScope,
 ) : AutoCloseable {
@@ -214,6 +223,43 @@ public class BlueLib private constructor(
         settings: SocketSettings = SocketSettings(),
     ): BlueLibResult<ClassicConnection> = classic.connectL2cap(deviceId, psm, settings)
 
+    // --- TCP/IP, USB and serial ----------------------------------------------------------------
+
+    /**
+     * Opens a TCP connection over Wi-Fi or Ethernet: raw-port printers (9100), Modbus TCP (502), serial
+     * device servers bridging RS-232/RS-485 to RJ45, ESP32 firmware. Needs `android.permission.INTERNET`.
+     */
+    public suspend fun connectTcp(
+        host: String,
+        port: Int,
+        settings: TcpSettings = TcpSettings(),
+    ): BlueLibResult<ByteConnection> =
+        TcpTransport.connect(host, port, scope, settings, onError = { androidDiagnostics.error(it) })
+
+    /** USB devices attached through OTG, with the driver BlueLib would use for each. */
+    public fun usbDevices(): List<UsbDeviceInfo> = usb.devices()
+
+    /**
+     * Opens a USB serial adapter (FTDI, CP210x, CH34x, CDC-ACM) or a raw bulk device, asking the user
+     * for access when needed. [driver] overrides auto detection.
+     */
+    public suspend fun connectUsbSerial(
+        device: UsbDeviceInfo,
+        settings: SerialSettings = SerialSettings(),
+        driver: UsbSerialDriver? = null,
+    ): BlueLibResult<ByteConnection> = usb.open(device.deviceName, settings, driver)
+
+    /**
+     * Opens a native UART such as `/dev/ttyS1` on POS and industrial boards; see [UartTransport] for
+     * the access the image must grant.
+     */
+    public suspend fun openUart(
+        path: String,
+        settings: SerialSettings = SerialSettings(),
+        configure: Boolean = true,
+    ): BlueLibResult<ByteConnection> =
+        UartTransport.open(path, scope, settings, configure, onError = { androidDiagnostics.error(it) })
+
     // --- Messaging -----------------------------------------------------------------------------
 
     /** Creates a [BluetoothMessenger] wrapping a BLE GATT characteristic on [session]. */
@@ -231,14 +277,17 @@ public class BlueLib private constructor(
         framer = framer,
     )
 
+    /** Creates a [BluetoothMessenger] over any link: Classic socket, TCP, USB serial or UART. */
+    public fun createMessenger(
+        connection: ByteConnection,
+        framer: MessageFramer = RawFramer,
+    ): BluetoothMessenger = StreamMessenger(connection, framer)
+
     /** Creates a [BluetoothMessenger] wrapping a Classic socket [connection]. */
     public fun createClassicMessenger(
         connection: ClassicConnection,
         framer: MessageFramer = RawFramer,
-    ): BluetoothMessenger = ClassicMessenger(
-        connection = connection,
-        framer = framer,
-    )
+    ): BluetoothMessenger = createMessenger(connection, framer)
 
     // --- Permissions ---------------------------------------------------------------------------
 
@@ -333,6 +382,7 @@ public class BlueLib private constructor(
                 dispatcher = platformDispatchers.bluetooth,
             )
             classic.start()
+            val usb = AndroidUsbPort(applicationContext, diagnostics, scope)
 
             // The capability snapshot is what makes an OEM bug report actionable, so it is recorded
             // as diagnostics rather than being available only through the public report.
@@ -357,6 +407,7 @@ public class BlueLib private constructor(
                 gattClient = gattClient,
                 gattServerHost = gattServerHost,
                 classic = classic,
+                usb = usb,
                 platformDispatchers = platformDispatchers,
                 scope = scope,
             )

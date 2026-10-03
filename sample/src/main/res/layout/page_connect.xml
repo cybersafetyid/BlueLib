@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false">
+
+    <!-- Focusable container: keeps the first text field from grabbing focus and scrolling the page. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Target device -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/bg_hero"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="18dp">
+
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_icon_badge"
+                android:contentDescription="@null"
+                android:padding="10dp"
+                android:src="@drawable/ic_bluetooth_connected"
+                app:tint="@color/blue_700" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/targetName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_none"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textColor="@color/white"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/targetAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_hint"
+                    android:textColor="@color/blue_100" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Sample.Input"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="14dp"
+            android:hint="@string/hint_manual_mac">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/manualMac"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionDone"
+                android:inputType="textCapCharacters" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- GATT client -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_bluetooth_connected"
+                    android:text="@string/gatt_title" />
+
+                <TextView
+                    android:id="@+id/gattState"
+                    style="@style/Sample.Caption"
+                    android:text="@string/gatt_disconnected" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/gattAutoConnect"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/gatt_auto_connect" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <Button
+                        android:id="@+id/btnGattConnect"
+                        style="@style/Sample.Button"
+                        android:text="@string/btn_connect" />
+
+                    <Button
+                        android:id="@+id/btnGattDisconnect"
+                        style="@style/Sample.Button.Outlined"
+                        android:layout_marginStart="8dp"
+                        android:enabled="false"
+                        android:text="@string/btn_disconnect" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/gatt_priority"
+                    android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/gattPriority"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/priorityLow"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/priority_low" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/priorityBalanced"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/priority_balanced" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/priorityHigh"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/priority_high" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/gatt_phy"
+                    android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                <LinearLayout
+                    style="@style/Sample.Row"
+                    android:layout_marginTop="4dp">
+
+                    <Button
+                        android:id="@+id/btnReadPhy"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/btn_read_phy" />
+
+                    <Button
+                        android:id="@+id/btnPhy2m"
+                        style="@style/Sample.Button.Outlined"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/btn_phy_2m" />
+
+                    <Button
+                        android:id="@+id/btnPhyCoded"
+                        style="@style/Sample.Button.Outlined"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/btn_phy_coded" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/gatt_services"
+                        android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                    <Button
+                        android:id="@+id/btnDiscover"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:text="@string/btn_discover" />
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Sample.Input"
+                    android:layout_marginTop="4dp"
+                    android:hint="@string/hint_write_value"
+                    app:helperText="@string/helper_write_value">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/gattWriteValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:id="@+id/serviceList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Classic sockets -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_link"
+                    android:text="@string/classic_title" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:text="@string/classic_caption" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Sample.Input"
+                    android:hint="@string/hint_rfcomm_uuid">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/rfcommUuid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:inputType="text"
+                        android:text="@string/spp_uuid" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/rfcommSecure"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:checked="true"
+                    android:text="@string/rfcomm_secure" />
+
+                <Button
+                    android:id="@+id/btnRfcomm"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/btn_rfcomm" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_psm">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/l2capPsm"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Button
+                        android:id="@+id/btnL2cap"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/btn_l2cap" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <include
+            android:id="@+id/terminal"
+            layout="@layout/view_terminal" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

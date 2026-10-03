@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false">
+
+    <!-- Focusable container: keeps the first text field from grabbing focus and scrolling the page. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- TCP -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_link"
+                    android:text="@string/tcp_title" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:text="@string/tcp_caption" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_tcp_target">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/tcpTarget"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textUri" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Button
+                        android:id="@+id/btnTcp"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/btn_connect" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Serial -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_usb"
+                    android:text="@string/serial_title" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:text="@string/serial_caption" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_baud">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/serialBaud"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="@string/default_baud" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_line">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/serialLine"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:text="@string/default_line" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/usb_section"
+                    android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/usbDevices"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:selectionRequired="true"
+                    app:singleSelection="true" />
+
+                <TextView
+                    android:id="@+id/usbEmpty"
+                    style="@style/Sample.Caption"
+                    android:text="@string/usb_empty" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <Button
+                        android:id="@+id/btnUsbRefresh"
+                        style="@style/Sample.Button.Outlined"
+                        android:text="@string/btn_refresh" />
+
+                    <Button
+                        android:id="@+id/btnUsb"
+                        style="@style/Sample.Button"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/btn_open_usb" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/uart_section"
+                    android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_uart_path">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/uartPath"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:inputType="text"
+                            android:text="@string/default_uart" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Button
+                        android:id="@+id/btnUart"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/btn_open" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <include
+            android:id="@+id/terminal"
+            layout="@layout/view_terminal" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

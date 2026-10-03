@@ -51,19 +51,10 @@ public data class SocketSettings(
     val feature: BluetoothFeature = BluetoothFeature.SOCKET_SETTINGS,
 )
 
-/** A connected Classic socket. */
-public interface ClassicConnection : AutoCloseable {
+/** A connected Classic socket (RFCOMM or L2CAP). */
+public interface ClassicConnection : ByteConnection {
     /** Remote device. */
     public val deviceId: BluetoothDeviceId
-
-    /** Incoming bytes; the flow completes when the socket closes. */
-    public val incoming: Flow<ByteArray>
-
-    /** Writes bytes to the socket. */
-    public suspend fun write(value: ByteArray): BlueLibResult<Unit>
-
-    /** `true` while the socket is usable. */
-    public val isConnected: Boolean
 }
 
 /** Bluetooth Classic port: discovery, bonding and sockets. */

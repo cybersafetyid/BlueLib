@@ -43,12 +43,14 @@ nav:
       - GATT client: guides/gatt-client.md
       - GATT server: guides/gatt-server.md
       - Bluetooth Classic: guides/classic.md
+      - TCP/IP, USB and serial: guides/wired-and-network.md
       - Testing: guides/testing.md
   - Compatibility matrix: compatibility-matrix.md
   - Troubleshooting: troubleshooting.md
   - Research notes:
       - "Android 5 to 17: what changed for Bluetooth": research/android-17-bluetooth.md
       - GATT pitfalls on real devices: research/gatt-pitfalls.md
+      - Device-to-device communication options: research/device-communication.md
   - Decisions:
       - 0001 Multi-module clean architecture: adr/0001-clean-architecture.md
       - 0002 minSdk 21 through compileSdk 37: adr/0002-api-range.md

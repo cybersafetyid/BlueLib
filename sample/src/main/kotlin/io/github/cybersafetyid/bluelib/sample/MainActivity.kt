@@ -1,206 +1,183 @@
 package io.github.cybersafetyid.bluelib.sample
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
-import android.widget.Toast
+import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
 import io.github.cybersafetyid.bluelib.BlueLib
 import io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation
-import io.github.cybersafetyid.bluelib.domain.codec.DataCodec
-import io.github.cybersafetyid.bluelib.domain.codec.DataEncoding
-import io.github.cybersafetyid.bluelib.domain.codec.DelimiterFramer
-import io.github.cybersafetyid.bluelib.domain.model.AutoPairFilter
-import io.github.cybersafetyid.bluelib.domain.model.ScanRequest
-import io.github.cybersafetyid.bluelib.domain.model.Transport
-import io.github.cybersafetyid.bluelib.port.ScanEvent
 import io.github.cybersafetyid.bluelib.sample.databinding.ActivityMainBinding
-import kotlinx.coroutines.Job
+import io.github.cybersafetyid.bluelib.sample.databinding.SheetLogBinding
 import kotlinx.coroutines.launch
 
+/**
+ * BlueLib showcase: one tab per area of the library.
+ *
+ * * Home — adapter state, runtime permissions, capability report, data codecs.
+ * * Scan — BLE scan, Classic discovery, paired devices, manual pairing and auto pairing.
+ * * Connect — GATT client (services, read/write/notify, MTU, priority, PHY) and RFCOMM/L2CAP sockets.
+ * * Peripheral — LE advertising and a GATT server (Nordic UART Service with echo).
+ * * Links — TCP/IP, USB serial and native UART.
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var blueLib: BlueLib
-    private var scanJob: Job? = null
+    private lateinit var host: SampleHost
+    private val log = Logbook()
+    private var busyCount = 0
+
+    private lateinit var homePage: HomePage
+    private lateinit var scanPage: ScanPage
+    private lateinit var connectPage: ConnectPage
+    private lateinit var peripheralPage: PeripheralPage
+    private lateinit var linksPage: LinksPage
+
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+        log.add("Permission result: ${result.entries.joinToString { "${it.key.substringAfterLast('.')}=${it.value}" }}")
+        homePage.refreshPermissions()
+        scanPage.onPermissionsChanged()
+    }
+
+    private val enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        log.add("Enable Bluetooth dialog closed (result ${it.resultCode})")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyInsets()
 
-        // Initialize BlueLib facade using published library artifact
         blueLib = BlueLib.create(applicationContext)
-
-        // Display library version and system report
-        val versionText = getString(R.string.version_format, BlueLib.version)
-        binding.tvVersion.text = versionText
-
-        val report = blueLib.capabilities
-        val capsSummary = getString(
-            R.string.capabilities_format,
-            report.apiLevelDescription,
-            blueLib.hasAdapter,
-            report.supportedFeatures.size,
-            report.capabilities.size,
-        )
-        binding.tvCapabilities.text = capsSummary
-
-        log("Initialized ${BlueLib.version}")
-        log("Device Capabilities: ${report.supportedFeatures.joinToString { it.fullName }}")
-
-        // Setup UI listeners
-        binding.btnPermissions.setOnClickListener {
-            checkPermissions()
-        }
-
-        binding.btnScan.setOnClickListener {
-            if (scanJob?.isActive == true) {
-                stopScan()
-            } else {
-                startScan()
-            }
-        }
-
-        binding.btnAutoPair.setOnClickListener {
-            runAutoPair()
-        }
-
-        binding.btnTestCodecs.setOnClickListener {
-            runDataCodecDemo()
-        }
-
-        // Collect diagnostics
-        lifecycleScope.launch {
-            blueLib.diagnostics.collect { event ->
-                log("DiagnosticEvent: $event")
-            }
-        }
-    }
-
-    private fun checkPermissions() {
-        val scanPermissions = blueLib.permissionsFor(BluetoothOperation.SCAN)
-        val connectPermissions = blueLib.permissionsFor(BluetoothOperation.CONNECT)
-
-        val reportText = "Scan satisfied: ${scanPermissions.isSatisfied}\n" +
-            "Missing scan permissions: ${scanPermissions.missing}\n" +
-            "Connect satisfied: ${connectPermissions.isSatisfied}\n" +
-            "Missing connect permissions: ${connectPermissions.missing}"
-
-        Toast.makeText(this, reportText, Toast.LENGTH_LONG).show()
-        log("Permissions check:\n$reportText")
-    }
-
-    private fun startScan() {
-        if (!blueLib.hasPermissionFor(BluetoothOperation.SCAN)) {
-            val missingText = getString(R.string.missing_scan_permission)
-            log("Cannot start scan: $missingText")
-            Toast.makeText(this, missingText, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        binding.btnScan.text = getString(R.string.btn_stop_scan)
-        binding.tvStatus.text = getString(R.string.status_scanning)
-        log("Starting LE Scan...")
-
-        scanJob = lifecycleScope.launch {
-            try {
-                blueLib.scan(ScanRequest(autoStopAfterMillis = 10_000L)).collect { event ->
-                    when (event) {
-                        is ScanEvent.Observed -> {
-                            val obs = event.observation
-                            log("Device found: ${obs.deviceName ?: "Unknown"} (${obs.deviceId}) RSSI: ${obs.rssi}")
-                        }
-                        is ScanEvent.Lost -> {
-                            val obs = event.observation
-                            log("Device lost: ${obs.deviceName ?: "Unknown"} (${obs.deviceId}) Reason: ${event.reason}")
-                        }
-                        is ScanEvent.Failed -> log("Scan event: Failed (${event.error})")
-                    }
-                }
-            } catch (e: Exception) {
-                log("Scan exception: ${e.message}")
-            } finally {
-                stopScanUI()
-            }
-        }
-    }
-
-    private fun runAutoPair() {
-        if (!blueLib.hasPermissionFor(BluetoothOperation.SCAN) || !blueLib.hasPermissionFor(BluetoothOperation.CONNECT)) {
-            log("Cannot run Auto Pair: missing SCAN or CONNECT permissions.")
-            Toast.makeText(this, "Missing SCAN or CONNECT permission", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val filter = AutoPairFilter(
-            minRssi = -80,
-            transport = Transport.AUTO,
+        host = SampleHost(
+            blueLib = blueLib,
+            scope = lifecycleScope,
+            log = log,
+            message = ::showMessage,
+            busy = ::setBusy,
+            requestPermissions = ::requestPermissions,
+            openConnectPage = { binding.bottomNav.selectedItemId = R.id.nav_connect },
         )
 
-        log("Initiating Dynamic Auto Pair (minRssi >= -80 dBm)...")
+        homePage = HomePage(binding.pageHome, host, ::enableBluetooth)
+        scanPage = ScanPage(binding.pageScan, host)
+        connectPage = ConnectPage(binding.pageConnect, host)
+        peripheralPage = PeripheralPage(binding.pagePeripheral, host)
+        linksPage = LinksPage(binding.pageLinks, host)
+
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            showPage(item.itemId)
+            true
+        }
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_log) showLog()
+            true
+        }
+
         lifecycleScope.launch {
-            blueLib.autoPair(filter, timeoutMillis = 10_000L).onSuccess { deviceId ->
-                log("Auto Pair SUCCESS: Paired with $deviceId")
-                Toast.makeText(this@MainActivity, "Auto Pair Success: $deviceId", Toast.LENGTH_LONG).show()
-            }.onFailure { error ->
-                log("Auto Pair FAILED: [${error.code}] ${error.message}")
-                Toast.makeText(this@MainActivity, "Auto Pair Failed: ${error.message}", Toast.LENGTH_LONG).show()
-            }
+            blueLib.adapterState.collect { binding.toolbar.subtitle = getString(R.string.adapter_state, it) }
+        }
+        lifecycleScope.launch {
+            blueLib.diagnostics.collect { event -> if (log.includeDiagnostics) log.add("◆ ${event.summary()}") }
+        }
+        log.add("Started ${BlueLib.version} on ${blueLib.capabilities.apiLevelDescription}")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Permissions may have been changed in system settings while the app was in the background.
+        homePage.refreshPermissions()
+    }
+
+    private fun showPage(itemId: Int) {
+        val pages = mapOf(
+            R.id.nav_home to binding.pageHome.root,
+            R.id.nav_scan to binding.pageScan.root,
+            R.id.nav_connect to binding.pageConnect.root,
+            R.id.nav_peripheral to binding.pagePeripheral.root,
+            R.id.nav_links to binding.pageLinks.root,
+        )
+        pages.forEach { (id, view) -> view.visibility = if (id == itemId) View.VISIBLE else View.GONE }
+        if (itemId == R.id.nav_links) linksPage.refreshUsb()
+    }
+
+    /** Asks for every permission the library reports as missing across all operations. */
+    private fun requestPermissions() {
+        val missing = BluetoothOperation.entries
+            .filter { it != BluetoothOperation.BACKGROUND_SCAN && it != BluetoothOperation.RANGING }
+            .flatMap { blueLib.permissionsFor(it).missing }
+            .distinct()
+        if (missing.isEmpty()) {
+            showMessage("All permissions are already granted.", null)
+            homePage.refreshPermissions()
+        } else {
+            permissionLauncher.launch(missing.toTypedArray())
         }
     }
 
-    private fun runDataCodecDemo() {
-        log("--- Multi-Format Data Codec Demo (BlueLib) ---")
-
-        val originalText = "Hello BlueLib!"
-        val textBytes = DataCodec.encodeText(originalText, DataEncoding.UTF8)
-        val decodedText = DataCodec.decodeText(textBytes, DataEncoding.UTF8)
-        log("[Text UTF-8] Original: '$originalText' -> Decoded: '$decodedText'")
-
-        val hexSample = "48656C6C6F"
-        val hexBytes = DataCodec.encodeHex(hexSample)
-        val decodedHex = DataCodec.decodeHex(hexBytes, separator = ":")
-        log("[Hex] Input: '$hexSample' -> Decoded String: '${DataCodec.decodeText(hexBytes)}' (Formatted Hex: '$decodedHex')")
-
-        val binarySample = "01001000 01100101"
-        val binaryBytes = DataCodec.encodeBinary(binarySample)
-        val decodedBinary = DataCodec.decodeBinary(binaryBytes, formatSpaces = true)
-        log("[Binary] Input: '$binarySample' -> Decoded Bits: '$decodedBinary'")
-
-        val base64Sample = DataCodec.encodeBase64("BlueLib Base64 Test".toByteArray(Charsets.UTF_8))
-        val decodedBase64Bytes = DataCodec.decodeBase64(base64Sample)
-        log("[Base64] Encoded: '$base64Sample' -> Decoded Text: '${DataCodec.decodeText(decodedBase64Bytes)}'")
-
-        // Framer Demo
-        val framer = DelimiterFramer.LINE_FEED
-        val framedPacket = framer.frame("SampleMessage".toByteArray(Charsets.UTF_8))
-        val parsedPackets = framer.parseIncoming(framedPacket)
-        log("[DelimiterFramer] Framed '${DataCodec.decodeText(framedPacket)}' -> Parsed ${parsedPackets.size} packet: '${DataCodec.decodeText(parsedPackets.first())}'")
+    private fun enableBluetooth() {
+        if (!blueLib.hasPermissionFor(BluetoothOperation.CONNECT)) {
+            showMessage("Turning Bluetooth on needs the Nearby devices permission.", "Grant" to ::requestPermissions)
+            return
+        }
+        enableBluetoothLauncher.launch(blueLib.enableBluetoothIntent())
     }
 
-    private fun stopScan() {
-        scanJob?.cancel()
-        scanJob = null
-        blueLib.releaseScanner()
-        stopScanUI()
-        log("Scan cancelled.")
+    private fun showMessage(text: String, action: Pair<String, () -> Unit>?) {
+        val snackbar = Snackbar.make(binding.root, text, Snackbar.LENGTH_LONG).setAnchorView(binding.bottomNav)
+        action?.let { (label, onClick) -> snackbar.setAction(label) { onClick() } }
+        snackbar.show()
     }
 
-    private fun stopScanUI() {
-        binding.btnScan.text = getString(R.string.btn_start_scan)
-        binding.tvStatus.text = getString(R.string.status_idle)
+    private fun setBusy(active: Boolean) {
+        busyCount = (busyCount + if (active) 1 else -1).coerceAtLeast(0)
+        binding.busy.visibility = if (busyCount > 0) View.VISIBLE else View.INVISIBLE
     }
 
-    private fun log(message: String) {
-        val currentLog = binding.tvLog.text.toString()
-        val updated = "$message\n$currentLog"
-        binding.tvLog.text = updated
+    private fun showLog() {
+        val dialog = BottomSheetDialog(this)
+        val sheet = SheetLogBinding.inflate(layoutInflater)
+        sheet.logDiagnostics.isChecked = log.includeDiagnostics
+        sheet.logDiagnostics.setOnCheckedChangeListener { _, checked -> log.includeDiagnostics = checked }
+        sheet.logClear.setOnClickListener { log.clear() }
+        sheet.logCopy.setOnClickListener {
+            (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
+                .setPrimaryClip(ClipData.newPlainText("BlueLib log", log.lines.value.joinToString("\n")))
+            showMessage("Log copied", null)
+        }
+        val job = lifecycleScope.launch { log.lines.collect { sheet.logText.text = it.joinToString("\n") } }
+        dialog.setOnDismissListener { job.cancel() }
+        dialog.setContentView(sheet.root)
+        dialog.show()
+    }
+
+    /** targetSdk 35+ draws edge to edge: pad for the status bar, and hide the tabs while typing. */
+    private fun applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val typing = insets.isVisible(WindowInsetsCompat.Type.ime())
+            binding.bottomNav.visibility = if (typing) View.GONE else View.VISIBLE
+            view.setPadding(bars.left, bars.top, bars.right, if (typing) ime.bottom else 0)
+            insets
+        }
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         if (::blueLib.isInitialized) {
+            connectPage.close()
+            peripheralPage.close()
+            linksPage.close()
             blueLib.close()
         }
+        super.onDestroy()
     }
 }

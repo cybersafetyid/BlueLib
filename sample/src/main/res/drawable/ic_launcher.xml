@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Blue disc with the Bluetooth rune; a vector so it stays sharp on every density from API 21. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#1456C8"
+        android:pathData="M24,2a22,22 0,1 1,0 44a22,22 0,1 1,0 -44z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30.42,18.84L23.5,12h-1.2v9.2L16.75,15.7 15.05,17.4 21.82,24.2 15.05,31 16.75,32.7 22.3,27.2L22.3,36.4h1.2l6.92,-6.92 -5.2,-5.2 5.2,-5.2zM24.72,15.5l2.28,2.28 -2.28,2.28L24.72,15.5zM27,30.62l-2.28,2.28v-4.56l2.28,2.28z" />
+</vector>

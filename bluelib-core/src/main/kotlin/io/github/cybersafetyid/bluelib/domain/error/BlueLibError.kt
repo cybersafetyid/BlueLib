@@ -358,6 +358,24 @@ public sealed interface BlueLibError {
         override val docsAnchor: String get() = "unexpected"
     }
 
+    /**
+     * A non-Bluetooth link (TCP, USB serial, UART) could not be opened.
+     *
+     * [endpoint] is the same string the connection reports, e.g. `tcp://192.168.1.10:9100`.
+     */
+    public data class LinkFailed(
+        public val endpoint: String,
+        public val reason: String,
+        override val cause: Throwable? = null,
+        override val isRetryable: Boolean = true,
+    ) : BlueLibError {
+        override val code: BlueLibErrorCode get() = BlueLibErrorCode.LINK_FAILED
+        override val message: String get() = "Opening $endpoint failed: $reason."
+        override val docsAnchor: String get() = "link-failed"
+        override val context: Map<String, String>
+            get() = mapOf("endpoint" to endpoint)
+    }
+
     /** A PHY update request was rejected by the peripheral. */
     public data class PhyUpdateFailed(
         public val device: BluetoothDeviceId,
@@ -393,6 +411,7 @@ public enum class BlueLibErrorCode {
     ENCRYPTION_FAILED,
     MTU_NEGOTIATION_FAILED,
     PHY_UPDATE_FAILED,
+    LINK_FAILED,
     TIMEOUT,
     OPERATION_REJECTED,
     CLOSED,

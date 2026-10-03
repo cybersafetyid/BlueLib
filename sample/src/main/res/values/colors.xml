@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Blue and white palette -->
+    <color name="blue_900">#0A2E6E</color>
+    <color name="blue_700">#1456C8</color>
+    <color name="blue_500">#2F7BF5</color>
+    <color name="blue_200">#B9D3FB</color>
+    <color name="blue_100">#DDE9FD</color>
+    <color name="blue_50">#F3F7FE</color>
+    <color name="white">#FFFFFF</color>
+    <color name="ink">#0F1B2D</color>
+    <color name="ink_muted">#5B6B82</color>
+    <color name="outline">#DCE4F0</color>
+    <color name="outline_strong">#8396B3</color>
+    <color name="success">#16A34A</color>
+    <color name="success_container">#DCFCE7</color>
+    <color name="danger">#DC2626</color>
+    <color name="danger_container">#FEE2E2</color>
+    <color name="console_bg">#0B1A33</color>
+    <color name="console_text">#CFE0FF</color>
 </resources>

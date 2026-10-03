@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false">
+
+    <!-- Focusable container: keeps the first text field from grabbing focus and scrolling the page. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Advertising -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_broadcast"
+                    android:text="@string/advertise_title" />
+
+                <TextView
+                    android:id="@+id/advertiseStatus"
+                    style="@style/Sample.Caption"
+                    android:text="@string/advertise_idle" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Sample.Input"
+                    android:hint="@string/hint_advertise_uuid">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/advertiseUuid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:inputType="text"
+                        android:text="@string/nus_service_uuid" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/advertiseName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/advertise_include_name" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/advertiseConnectable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/advertise_connectable" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/advertiseExtended"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/advertise_extended" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/advertise_mode"
+                    android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/advertiseMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:checkedChip="@+id/advModeBalanced"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/advModeLowPower"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mode_low_power" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/advModeBalanced"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mode_balanced" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/advModeLatency"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mode_low_latency" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/advertise_power"
+                    android:textAppearance="@style/TextAppearance.Sample.Section" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/advertisePower"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:checkedChip="@+id/powerMedium"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/powerUltraLow"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/power_ultra_low" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/powerLow"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/power_low" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/powerMedium"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/power_medium" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/powerHigh"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/power_high" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <Button
+                        android:id="@+id/btnAdvertiseStart"
+                        style="@style/Sample.Button"
+                        android:text="@string/btn_advertise_start" />
+
+                    <Button
+                        android:id="@+id/btnAdvertiseStop"
+                        style="@style/Sample.Button.Outlined"
+                        android:layout_marginStart="8dp"
+                        android:enabled="false"
+                        android:text="@string/btn_advertise_stop" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- GATT server -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Sample.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Sample.CardTitle"
+                    app:drawableStartCompat="@drawable/ic_server"
+                    android:text="@string/server_title" />
+
+                <TextView
+                    style="@style/Sample.Caption"
+                    android:text="@string/server_caption" />
+
+                <TextView
+                    android:id="@+id/serverStatus"
+                    style="@style/Sample.Caption"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/server_closed"
+                    android:textColor="@color/blue_700" />
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <Button
+                        android:id="@+id/btnServerOpen"
+                        style="@style/Sample.Button"
+                        android:text="@string/btn_server_open" />
+
+                    <Button
+                        android:id="@+id/btnServerClose"
+                        style="@style/Sample.Button.Outlined"
+                        android:layout_marginStart="8dp"
+                        android:enabled="false"
+                        android:text="@string/btn_server_close" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/Sample.Row">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/hint_notify_value">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/serverNotifyValue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Button
+                        android:id="@+id/btnServerNotify"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:enabled="false"
+                        android:text="@string/btn_notify" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/serverRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_console"
+                    android:minHeight="80dp"
+                    android:padding="12dp"
+                    android:text="@string/server_no_requests"
+                    android:fontFamily="monospace"
+            android:textAppearance="@style/TextAppearance.Sample.Mono" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

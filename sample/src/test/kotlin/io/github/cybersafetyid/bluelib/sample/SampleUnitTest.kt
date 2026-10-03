@@ -14,3 +14,15 @@ class SampleUnitTest {
         assertEquals("BlueLib 0.1.2", version)
     }
 }
+
+class TcpTargetTest {
+
+    @Test
+    fun parsesHostPortAndRejectsGarbage() {
+        assertEquals(TcpTarget("192.168.1.50", 9100), TcpTarget.parse(" 192.168.1.50:9100 "))
+        assertEquals(TcpTarget("printer.local", 515), TcpTarget.parse("printer.local:515"))
+        assertEquals(TcpTarget("fe80::1", 502), TcpTarget.parse("[fe80::1]:502"))
+        listOf("", "192.168.1.50", ":9100", "host:0", "host:70000", "host:abc", "/dev/ttyS3")
+            .forEach { assertEquals("'$it' should be rejected", null, TcpTarget.parse(it)) }
+    }
+}

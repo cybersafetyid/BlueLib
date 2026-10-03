@@ -8,17 +8,17 @@ import io.github.cybersafetyid.bluelib.domain.error.BlueLibError
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibResult
 import io.github.cybersafetyid.bluelib.domain.error.BlueLibValidationException
 import io.github.cybersafetyid.bluelib.domain.error.failureOf
-import io.github.cybersafetyid.bluelib.port.ClassicConnection
+import io.github.cybersafetyid.bluelib.port.ByteConnection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * [BluetoothMessenger] implementation over a Classic socket [ClassicConnection] (RFCOMM or L2CAP).
+ * [BluetoothMessenger] over any [ByteConnection]: RFCOMM/L2CAP sockets, TCP, USB serial or UART.
  */
-public class ClassicMessenger(
-    public val connection: ClassicConnection,
+public class StreamMessenger(
+    public val connection: ByteConnection,
     public val framer: MessageFramer = RawFramer,
 ) : BluetoothMessenger {
 
@@ -64,3 +64,7 @@ public class ClassicMessenger(
         }
     }
 }
+
+/** Former name of [StreamMessenger], kept so Classic socket code keeps compiling. */
+@Deprecated("Works for every transport now", ReplaceWith("StreamMessenger"))
+public typealias ClassicMessenger = StreamMessenger

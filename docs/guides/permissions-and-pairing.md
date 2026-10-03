@@ -10,7 +10,7 @@ BlueLib asks for exactly the permissions the running Android release requires, a
 | `BluetoothOperation.BACKGROUND_SCAN` | the above plus `ACCESS_BACKGROUND_LOCATION` (API 29+) | `BLUETOOTH_SCAN` (+ background location unless the app is exempt) |
 | `BluetoothOperation.CONNECT` | `BLUETOOTH`, `BLUETOOTH_ADMIN` | `BLUETOOTH_CONNECT` |
 | `BluetoothOperation.GATT_SERVER` | `BLUETOOTH`, `BLUETOOTH_ADMIN` | `BLUETOOTH_CONNECT` |
-| `BluetoothOperation.CLASSIC_DISCOVERY` | `BLUETOOTH`, `BLUETOOTH_ADMIN`, `ACCESS_FINE_LOCATION` | `BLUETOOTH_CONNECT` |
+| `BluetoothOperation.CLASSIC_DISCOVERY` | `BLUETOOTH`, `BLUETOOTH_ADMIN`, `ACCESS_FINE_LOCATION` | `BLUETOOTH_CONNECT`, `BLUETOOTH_SCAN` |
 | `BluetoothOperation.ADVERTISE` | `BLUETOOTH`, `BLUETOOTH_ADMIN` | `BLUETOOTH_ADVERTISE` |
 | `BluetoothOperation.RANGING` | not available | `RANGING` (Android 16+) |
 
@@ -52,9 +52,13 @@ BlueLib never calls `BluetoothAdapter.enable()` (deprecated and privileged). Ins
 enableLauncher.launch(blueLib.enableBluetoothIntent())
 ```
 
-and observe the state through `blueLib.adapterState`, which is driven by `ACTION_STATE_CHANGED` (with the
-Android 13+ `RECEIVER_NOT_EXPORTED` flag, which the platform requires for dynamically registered
-receivers).
+and observe the state through `blueLib.adapterState`, which is driven by `ACTION_STATE_CHANGED`.
+
+!!! warning "Bluetooth broadcasts need an exported receiver"
+    `android.bluetooth.*` broadcasts are sent by the Bluetooth module (its own uid), not by the system
+    server. A receiver registered with `RECEIVER_NOT_EXPORTED` is left out of the recipient list without
+    any error, so bond results, discovery results and adapter changes never arrive. BlueLib registers its
+    receivers with `RECEIVER_EXPORTED`; these are protected broadcasts that only the stack can send.
 
 ## Pairing
 

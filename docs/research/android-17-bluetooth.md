@@ -79,8 +79,9 @@ to regenerate [the matrix](../compatibility-matrix.md) from the same file.
   `isLeAudioBroadcastAssistantSupported()`, all returning `BluetoothStatusCodes`.
 * **Scan failures are typed**: `SCAN_FAILED_SCANNING_TOO_FREQUENTLY` (0x05) distinguishes platform
   throttling from real errors, and `ScanFilter` gains AD-type based matching.
-* Runtime receivers must declare an export flag on Android 13+ (`Context.RECEIVER_NOT_EXPORTED` for
-  system broadcasts), or registration throws.
+* Runtime receivers must declare an export flag on Android 13+, or registration throws. Bluetooth
+  broadcasts come from the Bluetooth module rather than the system server, so they need
+  `Context.RECEIVER_EXPORTED`: a not-exported receiver silently never receives them.
 
 ## Android 14 — API 34
 

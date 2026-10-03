@@ -23,7 +23,7 @@ public object ApiLevel {
 
     /** Running minor API level, e.g. `1` on Android 16.1, `0` on Android 16.0 and older platforms. */
     public val currentMinor: Int
-        get() = if (Build.VERSION.SDK_INT >= 36) minorOf(36) else 0
+        get() = minorOf(Build.VERSION.SDK_INT)
 
     /** `true` when the device runs at least major API level [apiLevel]. */
     @ChecksSdkIntAtLeast(parameter = 0)
@@ -47,8 +47,10 @@ public object ApiLevel {
      * report minor versions (Android 15 and older).
      */
     public fun minorOf(majorApiLevel: Int): Int {
-        if (Build.VERSION.SDK_INT < 36) return 0
-        return runCatching { Build.getMinorSdkVersion(majorApiLevel) }.getOrDefault(0)
+        // Only the running release has a known minor version, and only Android 16+ can report it.
+        if (Build.VERSION.SDK_INT < 36 || Build.VERSION.SDK_INT != majorApiLevel) return 0
+        // `getMinorSdkVersion` decodes a full SDK int (major * 100000 + minor), not a major level.
+        return runCatching { Build.getMinorSdkVersion(Build.VERSION.SDK_INT_FULL) }.getOrDefault(0)
     }
 
     /** Human readable version for diagnostics, e.g. `API 36.1`. */

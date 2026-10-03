@@ -6,6 +6,39 @@ All notable changes to BlueLib are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-10-03
+
+### Added
+
+* **TCP/IP transport** — `blueLib.connectTcp(host, port)` opens a TCP client link (Wi-Fi or Ethernet/RJ45) for network printers, Modbus TCP, serial device servers and ESP32 firmware.
+* **USB serial transport** — `blueLib.usbDevices()` and `blueLib.connectUsbSerial()` with built-in drivers for CDC-ACM, FTDI, CP210x and CH34x chips plus raw bulk devices; no root and no third-party dependency. Handles the USB permission dialog.
+* **Native UART transport** — `blueLib.openUart("/dev/ttyS1")` for the built-in RS-232/RS-485 ports of POS and industrial boards.
+* **`ByteConnection`** — one transport-agnostic connection type; `ClassicConnection` now extends it. `SerialSettings` (baud, data bits, parity, stop bits) is shared by USB and UART.
+* **`StreamMessenger`** and `blueLib.createMessenger(connection)` — the existing text/hex/binary/Base64 messaging and framers over any link.
+* **`BlueLibError.LinkFailed`** (`LINK_FAILED`) for links that cannot be opened.
+* **`FakeByteConnection`** in `bluelib-testing`.
+* Docs: [TCP/IP, USB and serial guide](docs/guides/wired-and-network.md) and [device communication research](docs/research/device-communication.md).
+
+### Changed
+
+* `ClassicMessenger` is now a deprecated alias of `StreamMessenger`. Its `connection` property is typed `ByteConnection`.
+* Classic sockets share the `StreamConnection` read loop: writes are serialized, the connection closes itself when the peer goes away, and up to 64 incoming chunks are buffered (was 16).
+* `ClassicConnection` implementations must provide `endpoint`.
+
+### Fixed
+
+* **Bluetooth broadcasts never arrived** — receivers were registered with `RECEIVER_NOT_EXPORTED`, but `android.bluetooth.*` broadcasts come from the Bluetooth module (its own uid), so the app was left out of the recipient list. `bond()` always timed out, Classic discovery found no devices and bond/adapter changes were missed. All Bluetooth receivers now use `RECEIVER_EXPORTED` (they are protected broadcasts).
+* **`GattSession.state` stayed `DISCONNECTED`** — the session never sent `CONNECT_REQUESTED`, so the state machine rejected `CONNECTED` and every later transition. It now reports `CONNECTING → CONNECTED → DISCOVERING_SERVICES → READY`, including autoConnect reconnects.
+* **GATT notifications were never delivered** — `subscribe()` wrote the CCCD but never called `setCharacteristicNotification`, so Android dropped incoming notifications. Also applied when subscriptions are restored after a reconnect.
+* **`ApiLevel.describe()` reported `API 37.36`** — `Build.getMinorSdkVersion` was given a major level instead of `SDK_INT_FULL`, which also made `isAtLeast(36, 1)` true on Android 16.0.
+* **Classic discovery permission** — `CLASSIC_DISCOVERY` now requires `BLUETOOTH_SCAN` on Android 12+ (needed by `startDiscovery()`); `bond()` only requires `BLUETOOTH_CONNECT`.
+* **`bondedDevices()` was empty** when `BLUETOOTH_CONNECT` was granted after `BlueLib.create()`; the list is now re-read on every collection.
+
+### Sample app
+
+* Redesigned with Material 3 in blue and white: Home (adapter, runtime permissions, capability report, codec playground), Scan & Pair (BLE scan, Classic discovery, paired devices, manual pair/unpair, auto pair with every filter), Connect (GATT client with services, read/write/notify, MTU, priority, PHY, GATT messenger; RFCOMM and L2CAP sockets), Peripheral (advertising, GATT server with a Nordic UART echo service), Links (TCP/IP, USB serial, UART) and an event log with BlueLib diagnostics.
+* `DelimiterFramer.LINE_FEED`, `CRLF` and `NULL_BYTE` are deprecated in favor of `DelimiterFramer.lineFeed()`, `crlf()` and `nullByte()`, and now return a new framer on each access. Before, they were shared singletons: two messengers using the same one mixed their partial messages, and closing one messenger wiped the other's buffer.
+
 ## [0.1.2] — 2026-09-22
 
 ### Added

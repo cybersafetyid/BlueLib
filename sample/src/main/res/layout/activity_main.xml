@@ -1,112 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/blue_50"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvVersion"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/blue_50"
+        app:menu="@menu/toolbar"
+        app:subtitleTextAppearance="@style/TextAppearance.Sample.Caption"
+        app:title="@string/app_name"
+        app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
+        app:titleTextColor="@color/blue_900" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/busy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/version_loading"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:indeterminate="true"
+        android:visibility="invisible"
+        app:indicatorColor="@color/blue_500"
+        app:trackColor="@color/blue_100" />
 
-    <TextView
-        android:id="@+id/tvCapabilities"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/capabilities_probing"
-        android:textSize="14sp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btnPermissions"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/btn_check_permissions"
-            android:textSize="11sp" />
-
-        <View
-            android:layout_width="6dp"
-            android:layout_height="0dp" />
-
-        <Button
-            android:id="@+id/btnScan"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/btn_start_scan"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btnAutoPair"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/btn_auto_pair"
-            android:textSize="11sp" />
-
-        <View
-            android:layout_width="6dp"
-            android:layout_height="0dp" />
-
-        <Button
-            android:id="@+id/btnTestCodecs"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/btn_test_codecs"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/status_idle"
-        android:textSize="14sp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/event_logs"
-        android:textStyle="bold" />
-
-    <ScrollView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
-        android:layout_weight="1"
-        android:background="#1E1E1E">
+        android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/tvLog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:padding="8dp"
-            android:textColor="#00FF00"
-            android:textSize="12sp" />
-    </ScrollView>
+        <include
+            android:id="@+id/pageHome"
+            layout="@layout/page_home" />
 
+        <include
+            android:id="@+id/pageScan"
+            layout="@layout/page_scan"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/pageConnect"
+            layout="@layout/page_connect"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/pagePeripheral"
+            layout="@layout/page_peripheral"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/pageLinks"
+            layout="@layout/page_links"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:itemActiveIndicatorStyle="@style/Widget.Material3.BottomNavigationView.ActiveIndicator"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav" />
 </LinearLayout>

@@ -35,7 +35,7 @@ class MessengerTest {
             session = session,
             serviceUuid = serviceUuid,
             characteristicUuid = charUuid,
-            framer = DelimiterFramer.LINE_FEED,
+            framer = DelimiterFramer.lineFeed(),
         )
 
         // Send Text
@@ -62,11 +62,11 @@ class MessengerTest {
     }
 
     @Test
-    fun `ClassicMessenger sends and receives text over socket connection`() = runTest {
+    fun `StreamMessenger sends and receives text over socket connection`() = runTest {
         val connection = TestClassicConnection()
-        val messenger = ClassicMessenger(
+        val messenger = StreamMessenger(
             connection = connection,
-            framer = DelimiterFramer.LINE_FEED,
+            framer = DelimiterFramer.lineFeed(),
         )
 
         val res = messenger.sendText("SocketData")
@@ -112,6 +112,7 @@ class MessengerTest {
 
     private class TestClassicConnection : ClassicConnection {
         override val deviceId: BluetoothDeviceId = BluetoothDeviceId.of("11:22:33:44:55:66")
+        override val endpoint: String = deviceId.address.value
         override val isConnected: Boolean = true
         var lastWrittenValue: ByteArray? = null
         val incomingFlow = MutableSharedFlow<ByteArray>(replay = 1, extraBufferCapacity = 16)

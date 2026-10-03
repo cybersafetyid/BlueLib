@@ -22,6 +22,7 @@ import io.github.cybersafetyid.bluelib.domain.model.Transport
 import io.github.cybersafetyid.bluelib.domain.model.WriteMode
 import io.github.cybersafetyid.bluelib.port.BleAdvertisePort
 import io.github.cybersafetyid.bluelib.port.BleScanPort
+import io.github.cybersafetyid.bluelib.port.ByteConnection
 import io.github.cybersafetyid.bluelib.port.ClassicConnection
 import io.github.cybersafetyid.bluelib.port.ClassicDevice
 import io.github.cybersafetyid.bluelib.port.ClassicDiscoveryEvent
@@ -579,3 +580,40 @@ public class FakeGattServerPort(
 
 /** Flow that never emits and never completes, for tests that need a collector to stay suspended. */
 public fun <T> neverEmits(): Flow<T> = emptyFlow()
+
+/**
+ * In-memory [ByteConnection] for testing code that talks over TCP, USB serial, UART or a Classic socket.
+ *
+ * [written] records every write; [receive] pushes bytes as if the peer sent them.
+ */
+public class FakeByteConnection(override val endpoint: String = "fake://device") : ByteConnection {
+
+    private val mutableIncoming = MutableSharedFlow<ByteArray>(replay = 16, extraBufferCapacity = 16)
+
+    /** Every payload written, in order. */
+    public val written: MutableList<ByteArray> = mutableListOf()
+
+    /** What [write] should answer; `null` means success. */
+    public var writeFailure: BlueLibError? = null
+
+    override var isConnected: Boolean = true
+        private set
+
+    override val incoming: Flow<ByteArray> = mutableIncoming.asSharedFlow()
+
+    /** Delivers [bytes] to collectors of [incoming]. */
+    public fun receive(bytes: ByteArray) {
+        mutableIncoming.tryEmit(bytes)
+    }
+
+    override suspend fun write(value: ByteArray): BlueLibResult<Unit> {
+        if (!isConnected) return failureOf(BlueLibError.Closed(endpoint))
+        writeFailure?.let { return failureOf(it) }
+        written += value
+        return successOf(Unit)
+    }
+
+    override fun close() {
+        isConnected = false
+    }
+}

@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import io.github.cybersafetyid.bluelib.android.compat.ApiLevel
+import io.github.cybersafetyid.bluelib.android.compat.registerBluetoothReceiver
 import io.github.cybersafetyid.bluelib.android.compat.PlatformCapabilities
 import io.github.cybersafetyid.bluelib.android.diagnostics.AndroidDiagnostics
 import io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation
@@ -32,8 +33,9 @@ import kotlinx.coroutines.flow.asStateFlow
  *   to keep Android 5.0 working.
  * * Reading `isEnabled` requires `BLUETOOTH_CONNECT` from Android 12, and OEM stacks throw even when
  *   the permission is present; both cases are mapped to a typed error instead of crashing.
- * * `ACTION_STATE_CHANGED` must be registered as a **not exported** receiver on Android 13+ (the
- *   platform throws otherwise), and BlueLib never calls the deprecated `enable()`/`disable()`.
+ * * `ACTION_STATE_CHANGED` comes from the Bluetooth module, not the system server, so it is received
+ *   through an exported receiver (see `registerBluetoothReceiver`); BlueLib never calls the deprecated
+ *   `enable()`/`disable()`.
  */
 // Every adapter read is wrapped so a missing `BLUETOOTH_CONNECT` becomes a typed error instead of a
 // `SecurityException`, which is why the static permission check is suppressed at this boundary.
@@ -85,11 +87,7 @@ public class AndroidAdapterSource(
         if (receiverRegistered || adapter == null) return
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         runCatching {
-            if (ApiLevel.requiresReceiverExportFlag()) {
-                context.registerReceiver(stateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                context.registerReceiver(stateReceiver, filter)
-            }
+            context.registerBluetoothReceiver(stateReceiver, filter)
         }.onFailure { throwable ->
             diagnostics.error(
                 BlueLibError.Unexpected("Unable to register the adapter state receiver", throwable),

@@ -128,6 +128,7 @@ public class AndroidGattSession internal constructor(
     /** Attaches the platform object returned by `connectGatt`. */
     internal fun attach(platformGatt: BluetoothGatt) {
         gatt = platformGatt
+        markConnecting()
     }
 
     /** Suspends until the connection is usable, or fails with the connect error. */
@@ -159,6 +160,8 @@ public class AndroidGattSession internal constructor(
 
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
+                    // The callback can beat attach(), and autoConnect reconnects arrive from DISCONNECTED.
+                    markConnecting()
                     transition(ConnectionEvent.CONNECTED, null, null)
                     // Kick off discovery *before* releasing connect(): the connect procedure waits for
                     // the profile right after, and only an already-pending discovery is safe to await.
@@ -469,6 +472,13 @@ public class AndroidGattSession internal constructor(
         }
 
         sessionScope.launch {
+            // Android only routes onCharacteristicChanged to apps that registered locally: without
+            // this call the CCCD write below makes the peer send, but the stack drops every packet.
+            val platformGatt = gatt
+            val platformCharacteristic = resolvePlatformCharacteristic(service, characteristic)
+            if (platformGatt != null && platformCharacteristic != null) {
+                launchOnPlatform { platformGatt.setCharacteristicNotification(platformCharacteristic, true) }
+            }
             // Writing the CCCD descriptor arms notifications; remember it for reconnect.
             val cccd = info.clientCharacteristicConfiguration
             if (cccd != null) {
@@ -570,6 +580,16 @@ public class AndroidGattSession internal constructor(
         }
     }
 
+    /**
+     * Moves an idle machine to CONNECTING. Without it the machine rejects CONNECTED (only
+     * CONNECT_REQUESTED is legal from DISCONNECTED) and [state] would stay DISCONNECTED forever.
+     */
+    private fun markConnecting() {
+        if (machine.state == ConnectionState.DISCONNECTED || machine.state == ConnectionState.RECONNECTING) {
+            transition(ConnectionEvent.CONNECT_REQUESTED, null, null)
+        }
+    }
+
     private fun prepareForDiscovery() {
         discovery?.cancel()
         pendingDiscovery = null
@@ -590,6 +610,9 @@ public class AndroidGattSession internal constructor(
                 if (parts.size != 2) return@forEach
                 val serviceUuid = BluetoothUuid.parseOrNull(parts[0]) ?: return@forEach
                 val characteristicUuid = BluetoothUuid.parseOrNull(parts[1]) ?: return@forEach
+                runCatching { platformGatt.getService(serviceUuid.uuid)?.getCharacteristic(characteristicUuid.uuid) }
+                    .getOrNull()
+                    ?.let { platformGatt.setCharacteristicNotification(it, true) }
                 val descriptor = gatt?.let { current ->
                     resolveDescriptorOn(current, serviceUuid, characteristicUuid, BluetoothUuid.CLIENT_CHARACTERISTIC_CONFIGURATION)
                 } ?: return@forEach

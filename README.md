@@ -8,13 +8,14 @@
 [![API](https://img.shields.io/badge/API-21%E2%86%9237-3DDC84)](https://cybersafetyid.github.io/BlueLib/compatibility-matrix/)
 [![Licence](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
-BlueLib is a coroutine-first Android Bluetooth library supporting Android 5.0 (API 21) through Android 17 (API 37). It wraps the complete Android Bluetooth API surface—BLE scanning, advertising, GATT client, GATT server, bonding, RFCOMM, and L2CAP—behind a clean, type-safe reactive API with structured error handling and no hidden APIs.
+BlueLib is a coroutine-first Android device communication library supporting Android 5.0 (API 21) through Android 17 (API 37). It wraps the complete Android Bluetooth API surface—BLE scanning, advertising, GATT client, GATT server, bonding, RFCOMM, and L2CAP—behind a clean, type-safe reactive API with structured error handling and no hidden APIs. The same messaging API also runs over **TCP/IP**, **USB serial** (FTDI, CP210x, CH34x, CDC-ACM) and **native UART** (RS-232/RS-485) links.
 
 ---
 
 ## Table of Contents
 
 - [Key Features](#key-features)
+- [Screenshots](#screenshots)
 - [Platform Comparison](#platform-comparison)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -35,8 +36,34 @@ BlueLib is a coroutine-first Android Bluetooth library supporting Android 5.0 (A
 - **Pure Kotlin Domain**: Core business logic and state machines reside in `bluelib-core` without Android framework dependencies.
 - **Complete Feature Set**: Supports BLE scanning, advertising, GATT client/server, bonding, dynamic auto-pairing, RFCOMM sockets, and L2CAP channels.
 - **Multi-Format Data Messaging**: `BluetoothMessenger` with `DataCodec` and `MessageFramer` for robust bi-directional communication (Text UTF-8/ASCII, Hex, Binary, Base64, and Raw bytes).
+- **Beyond Bluetooth**: `connectTcp`, `connectUsbSerial` and `openUart` return the same `ByteConnection`, so one `createMessenger` call covers Bluetooth Classic, Wi-Fi/Ethernet, USB to RS-232/RS-485 cables and built-in serial ports.
 - **Dynamic Auto Pairing**: Automated discovery and bonding using `AutoPairFilter` (MAC, name, name prefix, service UUIDs, manufacturer ID, and RSSI proximity).
 - **Test Infrastructure**: `bluelib-testing` module provides fakes for hardware-free unit and integration testing.
+
+---
+
+## Screenshots
+
+The [`sample`](sample) app exercises every feature of the library. These screenshots were captured on two
+Android 17 (API 37) emulators talking to each other over a virtual Bluetooth radio: one acts as the
+central, the other as the peripheral running the sample's GATT server.
+
+<p align="center">
+  <img src="docs/assets/screenshots/sample-tabs.png" alt="BlueLib sample app: Home, Scan &amp; Pair, Connect, Peripheral and Links tabs" width="100%">
+</p>
+
+| Pairing | Paired | GATT notify round trip | Event log |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/assets/screenshots/pairing-dialog.png" alt="Numeric comparison pairing dialog started by blueLib.bond()" width="200"> | <img src="docs/assets/screenshots/paired-device.png" alt="Device reported as paired after bonding" width="200"> | <img src="docs/assets/screenshots/gatt-notify-echo.png" alt="Write to the Nordic UART RX characteristic echoed back as a TX notification" width="200"> | <img src="docs/assets/screenshots/event-log.png" alt="Event log with BlueLib diagnostics" width="200"> |
+| `blueLib.bond()` starts LE Secure Connections pairing | Bond confirmed through `BOND_STATE_CHANGED` | `session.write()` to RX, echo received through `session.subscribe()` on TX | Every operation and `DiagnosticEvent` in one stream |
+
+| Tab | What it demonstrates |
+| --- | --- |
+| **Home** | Adapter state, runtime permissions per operation, capability report with reasons, data codecs and framers |
+| **Scan & Pair** | BLE scan, Classic discovery, paired devices, manual pair/unpair, auto pair with every `AutoPairFilter` field |
+| **Connect** | GATT client (services, read/write/notify, MTU, connection priority, PHY, GATT messenger), RFCOMM and L2CAP sockets |
+| **Peripheral** | LE advertising and a GATT server exposing the Nordic UART Service with an echo |
+| **Links** | TCP/IP, USB serial (FTDI, CP210x, CH34x, CDC-ACM) and native UART, all through the same messenger |
 
 ---
 
@@ -142,7 +169,7 @@ val messenger = blueLib.createGattMessenger(
     session = session,
     serviceUuid = serviceUuid,
     characteristicUuid = characteristicUuid,
-    framer = DelimiterFramer.LINE_FEED,
+    framer = DelimiterFramer.lineFeed(),
 )
 
 // Send data in various encodings
@@ -157,6 +184,26 @@ messenger.incomingText().collect { text ->
 }
 ```
 
+### TCP/IP, USB Serial and UART
+
+```kotlin
+// Network printer or serial device server over Wi-Fi/Ethernet
+val tcp = blueLib.connectTcp("192.168.1.50", 9100).getOrThrow()
+
+// USB to RS-232 cable (FTDI, CP210x, CH34x, CDC-ACM)
+val usb = blueLib.connectUsbSerial(
+    device = blueLib.usbDevices().first { it.driver != null },
+    settings = SerialSettings(baudRate = 9600),
+).getOrThrow()
+
+// Built-in RS-232 port of a POS/industrial board
+val uart = blueLib.openUart("/dev/ttyS3", SerialSettings(baudRate = 115_200)).getOrThrow()
+
+// Same messaging API on every link
+val messenger = blueLib.createMessenger(usb, framer = DelimiterFramer(byteArrayOf(0x0D, 0x0A)))
+messenger.sendText("READ")
+```
+
 ---
 
 ## Module Architecture
@@ -166,8 +213,8 @@ BlueLib is split across four modules following clean architecture boundaries:
 | Module Artifact | Description |
 | --- | --- |
 | `io.github.cybersafetyid:bluelib` | Public facade unifying library capabilities |
-| `io.github.cybersafetyid:bluelib-android` | Android platform adapters (Permissions, Scanner, Advertiser, GATT, Classic) |
-| `io.github.cybersafetyid:bluelib-core` | Pure Kotlin domain layer (Models, Validation, State Machines, Error Taxonomy) |
+| `io.github.cybersafetyid:bluelib-android` | Android platform adapters (Permissions, Scanner, Advertiser, GATT, Classic, USB) |
+| `io.github.cybersafetyid:bluelib-core` | Pure Kotlin domain layer (Models, Validation, State Machines, Error Taxonomy, TCP/UART transports, USB serial protocols) |
 | `io.github.cybersafetyid:bluelib-testing` | Test fakes for hardware-free unit testing |
 
 ---
@@ -186,10 +233,12 @@ Full documentation is published at [cybersafetyid.github.io/BlueLib](https://cyb
 | [GATT Client](docs/guides/gatt-client.md) | Connection lifecycle, MTU, PHY, reads, writes, and notifications |
 | [GATT Server](docs/guides/gatt-server.md) | Service setup, auto-responses, and subscription tracking |
 | [Bluetooth Classic](docs/guides/classic.md) | Device discovery, RFCOMM sockets, and L2CAP channels |
+| [TCP/IP, USB and Serial](docs/guides/wired-and-network.md) | TCP client, USB serial adapters, native UART, RJ45 serial |
 | [Testing Strategy](docs/guides/testing.md) | Unit testing using `bluelib-testing` and Robolectric |
 | [Compatibility Matrix](docs/compatibility-matrix.md) | Complete SDK API compatibility mapping |
 | [Troubleshooting](docs/troubleshooting.md) | Diagnostic rules and resolution steps for error codes |
 | [Research Notes](docs/research/android-17-bluetooth.md) | Deep dive into Android 5 through 17 Bluetooth platform changes |
+| [Device Communication](docs/research/device-communication.md) | Every device-to-device link on Android and BlueLib status |
 
 ---
 

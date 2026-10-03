@@ -83,12 +83,14 @@ public object BluetoothPermissions {
             listOf(Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN)
         }
 
+        // `startDiscovery()` and `cancelDiscovery()` are guarded by BLUETOOTH_SCAN on Android 12+, on top
+        // of BLUETOOTH_CONNECT for reading device names.
         BluetoothOperation.CLASSIC_DISCOVERY -> requiredFor(BluetoothOperation.CONNECT) + if (
             !ApiLevel.hasSplitBluetoothPermissions()
         ) {
             listOf(Manifest.permission.ACCESS_FINE_LOCATION)
         } else {
-            emptyList()
+            listOf(Manifest.permission.BLUETOOTH_SCAN)
         }
 
         BluetoothOperation.ADVERTISE -> if (ApiLevel.hasSplitBluetoothPermissions()) {

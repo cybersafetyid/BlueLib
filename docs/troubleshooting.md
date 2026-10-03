@@ -26,6 +26,7 @@ heading here always match. Each section says what the error means, what usually 
 | `ENCRYPTION_FAILED` | `EncryptionFailed` | yes | [encryption-failed](#encryption-failed) |
 | `MTU_NEGOTIATION_FAILED` | `MtuNegotiationFailed` | yes | [mtu-negotiation](#mtu-negotiation) |
 | `PHY_UPDATE_FAILED` | `PhyUpdateFailed` | yes | [phy-update](#phy-update) |
+| `LINK_FAILED` | `LinkFailed` | from `isRetryable` | [link-failed](#link-failed) |
 | `TIMEOUT` | `Timeout` | yes | [timeout](#timeout) |
 | `OPERATION_REJECTED` | `OperationRejected` | no | [operation-rejected](#operation-rejected) |
 | `CLOSED` | `Closed` | no | [resource-closed](#resource-closed) |
@@ -281,6 +282,24 @@ BlueLibConfig(
 
 Slow peripherals legitimately need larger values; an operation that times out at 10 s and succeeds at 30 s
 is usually a firmware issue worth reporting rather than a number to keep raising.
+
+## link-failed
+
+A TCP, USB serial or UART link could not be opened, or a USB device was unplugged while open.
+`error.endpoint` names the link (`tcp://host:port`, `usb:/dev/bus/usb/...`, `/dev/ttyS1`) and `error.reason`
+says why.
+
+| Reason | What to do |
+| --- | --- |
+| `Connection refused`, `timed out`, unknown host | Check the IP and port, that phone and device are on the same network, and that the app declares `android.permission.INTERNET`. Retryable. |
+| `the user denied USB access` | Ask again with `connectUsbSerial`, or add a `USB_DEVICE_ATTACHED` intent filter so Android grants access on plug-in. |
+| `no driver for 0x067B:...` | PL2303 and unknown chips are not supported; pass `driver = UsbSerialDriver.CDC_ACM` or `RAW_BULK` if the device is compatible. |
+| `interface is claimed by another app or driver` | Close the other app that holds the device. |
+| `... was rejected by the device` | The chip refused a configuration request; check the baud rate is supported by that chip. |
+| `no read/write permission` on `/dev/tty*` | The device image must grant access to the app (vendor or rooted image). Not retryable. |
+| `stty ...` | The port could not be configured; pass `configure = false` if the vendor configured it already. |
+
+See [TCP/IP, USB and serial links](guides/wired-and-network.md).
 
 ## operation-rejected
 

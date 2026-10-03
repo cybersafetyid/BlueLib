@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import androidx.annotation.RequiresApi
 import io.github.cybersafetyid.bluelib.android.adapter.AndroidAdapterSource
 import io.github.cybersafetyid.bluelib.android.compat.ApiLevel
+import io.github.cybersafetyid.bluelib.android.compat.registerBluetoothReceiver
 import io.github.cybersafetyid.bluelib.android.diagnostics.AndroidDiagnostics
 import io.github.cybersafetyid.bluelib.android.permission.BluetoothOperation
 import io.github.cybersafetyid.bluelib.domain.BluetoothFeature
@@ -31,21 +32,20 @@ import io.github.cybersafetyid.bluelib.port.ClassicDiscoveryEvent
 import io.github.cybersafetyid.bluelib.port.ClassicPort
 import io.github.cybersafetyid.bluelib.port.ClockPort
 import io.github.cybersafetyid.bluelib.port.SocketSettings
+import io.github.cybersafetyid.bluelib.transport.StreamConnection
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.ConcurrentHashMap
@@ -105,11 +105,7 @@ public class AndroidClassicPort(
             }
         }
         runCatching {
-            if (ApiLevel.requiresReceiverExportFlag()) {
-                context.registerReceiver(stateListener, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                context.registerReceiver(stateListener, filter)
-            }
+            context.registerBluetoothReceiver(stateListener, filter)
         }.onSuccess { listenerRegistered = true }
             .onFailure { throwable ->
                 diagnostics.error(BlueLibError.Unexpected("Unable to register the bond receiver", throwable))
@@ -163,11 +159,7 @@ public class AndroidClassicPort(
             addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         }
         runCatching {
-            if (ApiLevel.requiresReceiverExportFlag()) {
-                context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                context.registerReceiver(receiver, filter)
-            }
+            context.registerBluetoothReceiver(receiver, filter)
         }.onFailure { throwable ->
             close(BlueLibException(BlueLibError.Unexpected("Cannot register the discovery receiver", throwable)))
             return@callbackFlow
@@ -193,7 +185,10 @@ public class AndroidClassicPort(
         }
     }
 
-    override fun bondedDevices(): Flow<List<ClassicDevice>> = mutableBondedDevices.asStateFlow()
+    // Re-read on every collection: the list read at start() is empty when BLUETOOTH_CONNECT was granted
+    // after BlueLib was created, and no broadcast fires for that.
+    override fun bondedDevices(): Flow<List<ClassicDevice>> =
+        mutableBondedDevices.asStateFlow().onStart { refreshBondedDevices() }
 
     /** Reads the bonded device list from the platform and updates the stream. */
     @Suppress("DEPRECATION")
@@ -231,11 +226,7 @@ public class AndroidClassicPort(
         }
         val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         runCatching {
-            if (ApiLevel.requiresReceiverExportFlag()) {
-                context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                context.registerReceiver(receiver, filter)
-            }
+            context.registerBluetoothReceiver(receiver, filter)
         }
         awaitClose { runCatching { context.unregisterReceiver(receiver) } }
     }
@@ -248,7 +239,9 @@ public class AndroidClassicPort(
     ): BlueLibResult<Unit> {
         require(timeoutMillis > 0) { "timeoutMillis must be positive" }
 
-        val adapter = adapterSource.requireReady(BluetoothOperation.CLASSIC_DISCOVERY)
+        // `createBond()` only needs BLUETOOTH_CONNECT; discovery permissions would block apps that bond
+        // with a device they already know.
+        val adapter = adapterSource.requireReady(BluetoothOperation.CONNECT)
         val readyAdapter = adapter.getOrNull() ?: return failureOf(adapter.errorOrNull()!!)
 
         val device = deviceFor(readyAdapter, deviceId)
@@ -264,7 +257,9 @@ public class AndroidClassicPort(
                 val changed = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                     ?: return
                 if (!changed.address.equals(deviceId.address.value, ignoreCase = true)) return
-                val state = BondState.fromPlatformValue(changed.bondState)
+                val state = BondState.fromPlatformValue(
+                    intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, changed.bondState),
+                )
                 val lossReason = bondLossReasonOf(intent)
                 if (lossReason != null) {
                     diagnostics.error(
@@ -288,11 +283,7 @@ public class AndroidClassicPort(
             }
         }
         runCatching {
-            if (ApiLevel.requiresReceiverExportFlag()) {
-                context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                context.registerReceiver(receiver, filter)
-            }
+            context.registerBluetoothReceiver(receiver, filter)
         }.onFailure { throwable ->
             return failureOf(BlueLibError.Unexpected("Cannot register the bonding receiver", throwable))
         }
@@ -645,95 +636,24 @@ public class AndroidClassicPort(
         }
 }
 
-/**
- * One connected Classic socket.
- *
- * The reader runs on the socket's own coroutine and closes the flow when the peer disappears, because
- * `InputStream.read` throws rather than returning `-1` when the link drops on most stacks.
- */
+/** One connected Classic socket; reading and writing are shared with every other stream transport. */
 internal class AndroidClassicConnection(
     private val socket: BluetoothSocket,
     override val deviceId: BluetoothDeviceId,
-    private val diagnostics: AndroidDiagnostics,
+    diagnostics: AndroidDiagnostics,
     scope: CoroutineScope,
-    private val ioDispatcher: CoroutineDispatcher,
-) : ClassicConnection {
-
-    private val mutableIncoming = MutableSharedFlow<ByteArray>(
-        replay = 0,
-        extraBufferCapacity = 16,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-
-    override val incoming: Flow<ByteArray> = mutableIncoming
-
-    @Volatile
-    private var closed = false
+    ioDispatcher: CoroutineDispatcher,
+) : StreamConnection(
+    endpoint = deviceId.address.value,
+    input = socket.inputStream,
+    output = socket.outputStream,
+    scope = scope,
+    ioDispatcher = ioDispatcher,
+    onError = { diagnostics.error(it, deviceId) },
+    release = socket::close,
+),
+    ClassicConnection {
 
     override val isConnected: Boolean
-        get() = !closed && runCatching { socket.isConnected }.getOrDefault(false)
-
-    init {
-        scope.launch(ioDispatcher) {
-            readLoop()
-        }
-    }
-
-    override suspend fun write(value: ByteArray): BlueLibResult<Unit> = withContext(ioDispatcher) {
-        if (closed) return@withContext failureOf(BlueLibError.Closed("ClassicConnection"))
-        runCatching {
-            socket.outputStream.write(value)
-            socket.outputStream.flush()
-        }.fold(
-            onSuccess = { successOf(Unit) },
-            onFailure = { throwable ->
-                diagnostics.error(
-                    BlueLibError.Unexpected("Socket write failed", throwable, operation = "socket.write"),
-                    deviceId,
-                )
-                failureOf(
-                    BlueLibError.Unexpected(
-                        message = "Socket write failed: ${throwable.message.orEmpty()}",
-                        cause = throwable,
-                        operation = "socket.write",
-                    ),
-                )
-            },
-        )
-    }
-
-    private fun readLoop() {
-        val buffer = ByteArray(READ_BUFFER_BYTES)
-        try {
-            val input = socket.inputStream
-            while (!closed) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                if (read > 0) {
-                    mutableIncoming.tryEmit(buffer.copyOf(read))
-                }
-            }
-        } catch (failure: Throwable) {
-            if (!closed) {
-                diagnostics.error(
-                    BlueLibError.Unexpected("Socket read failed", failure, operation = "socket.read"),
-                    deviceId,
-                )
-            }
-        }
-    }
-
-    override fun close() {
-        if (closed) return
-        closed = true
-        // Closing the streams first lets a blocking read return before the socket itself goes away.
-        runCatching { socket.inputStream?.close() }
-        runCatching { socket.outputStream?.close() }
-        runCatching { socket.close() }
-    }
-
-    private companion object {
-        /** Read buffer size: the classic Android sample uses 1024 and it stays a safe default. */
-        const val READ_BUFFER_BYTES = 1024
-    }
+        get() = super.isConnected && runCatching { socket.isConnected }.getOrDefault(false)
 }

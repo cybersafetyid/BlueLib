@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
- * High-level unified API for sending and receiving data over connected Bluetooth sessions.
+ * High-level API for sending and receiving data over a connected link: BLE GATT, Bluetooth Classic,
+ * TCP/IP, USB serial or UART. The name predates the non-Bluetooth transports.
  */
 public interface BluetoothMessenger : AutoCloseable {
 

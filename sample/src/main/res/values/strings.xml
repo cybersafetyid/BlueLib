@@ -1,17 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BlueLib Sample</string>
-    <string name="btn_start_scan">Start LE Scan</string>
-    <string name="btn_stop_scan">Stop Scan</string>
-    <string name="btn_check_permissions">Check Permissions</string>
-    <string name="btn_auto_pair">Auto Pair</string>
-    <string name="btn_test_codecs">Test Data Codecs</string>
-    <string name="status_idle">Status: Idle</string>
-    <string name="status_scanning">Status: Scanning&#8230;</string>
-    <string name="missing_scan_permission">Missing SCAN permission</string>
-    <string name="version_loading">BlueLib Version Loading&#8230;</string>
-    <string name="capabilities_probing">Capabilities: Probing&#8230;</string>
-    <string name="event_logs">Event Logs:</string>
-    <string name="version_format">Library: %1$s</string>
-    <string name="capabilities_format">API: %1$s\nHas Adapter: %2$b\nSupported Features: %3$d/%4$d</string>
+    <string name="app_name">BlueLib</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_scan">Scan &amp; Pair</string>
+    <string name="nav_connect">Connect</string>
+    <string name="nav_peripheral">Peripheral</string>
+    <string name="nav_links">Links</string>
+    <string name="action_log">Event log</string>
+
+    <!-- Home -->
+    <string name="hero_platform">%1$s · %2$s %3$s</string>
+    <string name="adapter_state">Bluetooth %1$s</string>
+    <string name="adapter_missing">No Bluetooth adapter</string>
+    <string name="btn_enable_bluetooth">Turn on</string>
+    <string name="permissions_title">Permissions</string>
+    <string name="permissions_caption">What each Bluetooth operation needs on this Android release. Tap a chip for details.</string>
+    <string name="btn_grant_permissions">Grant permissions</string>
+    <string name="permissions_all_granted">All permissions granted</string>
+    <string name="capabilities_title">Capabilities</string>
+    <string name="capabilities_summary">%1$d of %2$d features supported on %3$s</string>
+    <string name="capabilities_hint">Blue: supported. White: missing on this device or Android release. Tap for the reason.</string>
+    <string name="codec_title">Data codecs &amp; framers</string>
+    <string name="codec_caption">The same encodings every messenger uses: text, hex, binary, Base64, line and length framing.</string>
+    <string name="hint_codec_input">Type something</string>
+    <string name="codec_default">Hello BlueLib</string>
+
+    <!-- Scan & pair -->
+    <string name="scan_title">Discover devices</string>
+    <string name="scan_caption">BLE scan, Bluetooth Classic discovery, or the devices already paired with this phone.</string>
+    <string name="source_ble">BLE</string>
+    <string name="source_classic">Classic</string>
+    <string name="source_bonded">Paired</string>
+    <string name="hint_name_prefix">Name starts with (optional)</string>
+    <string name="mode_low_power">Low power</string>
+    <string name="mode_balanced">Balanced</string>
+    <string name="mode_low_latency">Low latency</string>
+    <string name="btn_start_scan">Start scan</string>
+    <string name="btn_stop_scan">Stop scan</string>
+    <string name="autopair_title">Auto pair</string>
+    <string name="autopair_caption">Finds the first device matching every filter you fill in and pairs with it. Already paired devices succeed immediately.</string>
+    <string name="hint_device_name">Exact name</string>
+    <string name="hint_name_prefix_short">Name prefix</string>
+    <string name="hint_mac">MAC address</string>
+    <string name="hint_manufacturer">Company id (0x004C)</string>
+    <string name="hint_service_uuid">Advertised service UUID</string>
+    <string name="autopair_rssi">Only closer than %1$d dBm</string>
+    <string name="autopair_rssi_off">Any signal strength</string>
+    <string name="autopair_rssi_description">Minimum signal strength</string>
+    <string name="transport_auto">Auto</string>
+    <string name="transport_le">LE</string>
+    <string name="transport_bredr">Classic</string>
+    <string name="btn_auto_pair">Start auto pair</string>
+    <string name="autopair_running">Searching… confirm the pairing dialog when it appears.</string>
+    <string name="autopair_success">Paired with %1$s. It is now selected on the Connect tab.</string>
+    <string name="devices_count">Devices (%1$d)</string>
+    <string name="devices_empty">No devices yet. Start a scan or switch to Paired.</string>
+    <string name="rssi_dbm">%1$d dBm</string>
+    <string name="btn_pair">Pair</string>
+    <string name="btn_unpair">Unpair</string>
+    <string name="btn_use_device">Connect</string>
+
+    <!-- Connect -->
+    <string name="target_none">No device selected</string>
+    <string name="target_hint">Pick one on Scan &amp; Pair, or type a MAC below</string>
+    <string name="hint_manual_mac">Or enter a MAC address (AA:BB:CC:DD:EE:FF)</string>
+    <string name="gatt_title">GATT client</string>
+    <string name="gatt_disconnected">Not connected</string>
+    <string name="gatt_connecting">Connecting to %1$s…</string>
+    <string name="gatt_state">%1$s · MTU %2$d</string>
+    <string name="gatt_auto_connect">Auto connect (wait until the device is in range)</string>
+    <string name="btn_connect">Connect</string>
+    <string name="btn_disconnect">Disconnect</string>
+    <string name="gatt_priority">Connection priority</string>
+    <string name="priority_low">Low power</string>
+    <string name="priority_balanced">Balanced</string>
+    <string name="priority_high">High</string>
+    <string name="gatt_phy">PHY</string>
+    <string name="btn_read_phy">Read</string>
+    <string name="btn_phy_2m">2M</string>
+    <string name="btn_phy_coded">Coded S8</string>
+    <string name="gatt_services">Services</string>
+    <string name="btn_discover">Rediscover</string>
+    <string name="hint_write_value">Value for Write</string>
+    <string name="helper_write_value">Text, or hex with a 0x prefix (0x01A2)</string>
+    <string name="service_header">%1$s · %2$d characteristics</string>
+    <string name="characteristic_meta">%1$s\n%2$s</string>
+    <string name="classic_title">Classic sockets</string>
+    <string name="classic_caption">RFCOMM (SPP and custom profiles) or an L2CAP channel to the selected device.</string>
+    <string name="hint_rfcomm_uuid">RFCOMM service UUID</string>
+    <string name="spp_uuid">00001101-0000-1000-8000-00805f9b34fb</string>
+    <string name="rfcomm_secure">Secure (encrypted, paired) socket</string>
+    <string name="btn_rfcomm">Open RFCOMM</string>
+    <string name="hint_psm">L2CAP PSM</string>
+    <string name="btn_l2cap">Open L2CAP</string>
+
+    <!-- Terminal -->
+    <string name="terminal_title">Messenger</string>
+    <string name="terminal_idle">Not linked. Open a socket, a link or tap Messenger on a characteristic.</string>
+    <string name="terminal_connected">Linked to %1$s</string>
+    <string name="format_text">Text</string>
+    <string name="format_hex">Hex</string>
+    <string name="format_base64">Base64</string>
+    <string name="hint_message">Message</string>
+    <string name="btn_send">Send</string>
+    <string name="terminal_newline">Line mode (LF framing)</string>
+    <string name="btn_close_link">Close link</string>
+
+    <!-- Peripheral -->
+    <string name="advertise_title">Advertising</string>
+    <string name="advertise_idle">Not advertising</string>
+    <string name="advertise_running">Advertising · set #%1$d · %2$s · tx %3$s</string>
+    <string name="hint_advertise_uuid">Advertised service UUID</string>
+    <string name="nus_service_uuid">6e400001-b5a3-f393-e0a9-e50e24dcca9e</string>
+    <string name="advertise_include_name">Include device name</string>
+    <string name="advertise_connectable">Connectable</string>
+    <string name="advertise_extended">Extended advertising (Android 8+)</string>
+    <string name="advertise_mode">Mode</string>
+    <string name="advertise_power">Transmit power</string>
+    <string name="power_ultra_low">Ultra low</string>
+    <string name="power_low">Low</string>
+    <string name="power_medium">Medium</string>
+    <string name="power_high">High</string>
+    <string name="btn_advertise_start">Start</string>
+    <string name="btn_advertise_stop">Stop</string>
+    <string name="server_title">GATT server</string>
+    <string name="server_caption">Hosts the Nordic UART Service. Writes to RX are echoed back on TX, so a second phone running this sample can chat with this one.</string>
+    <string name="server_closed">Closed</string>
+    <string name="server_open">Open · %1$d connected · %2$s</string>
+    <string name="btn_server_open">Open server</string>
+    <string name="btn_server_close">Close</string>
+    <string name="hint_notify_value">Notify text on TX</string>
+    <string name="btn_notify">Notify</string>
+    <string name="server_no_requests">Requests from centrals appear here.</string>
+
+    <!-- Links -->
+    <string name="tcp_title">TCP/IP</string>
+    <string name="tcp_caption">Wi-Fi or Ethernet (RJ45): network printers, Modbus TCP, serial device servers, ESP32.</string>
+    <string name="hint_tcp_target">host:port</string>
+    <string name="serial_title">Serial (RS-232 / RS-485)</string>
+    <string name="serial_caption">USB serial adapters over OTG (FTDI, CP210x, CH34x, CDC-ACM) or the built-in UART of POS and industrial boards.</string>
+    <string name="hint_baud">Baud</string>
+    <string name="default_baud">9600</string>
+    <string name="hint_line">Format</string>
+    <string name="default_line">8N1</string>
+    <string name="usb_section">USB devices</string>
+    <string name="usb_empty">No USB device attached.</string>
+    <string name="btn_refresh">Refresh</string>
+    <string name="btn_open_usb">Open USB</string>
+    <string name="uart_section">Native UART</string>
+    <string name="hint_uart_path">Device file</string>
+    <string name="default_uart">/dev/ttyS1</string>
+    <string name="btn_open">Open</string>
+
+    <!-- Log -->
+    <string name="log_title">Event log</string>
+    <string name="log_copy">Copy log</string>
+    <string name="log_clear">Clear log</string>
+    <string name="log_diagnostics">Include BlueLib diagnostics</string>
 </resources>
